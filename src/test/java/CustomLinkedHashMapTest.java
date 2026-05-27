@@ -1,9 +1,18 @@
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomLinkedHashMapTest {
 
@@ -211,12 +220,6 @@ class CustomLinkedHashMapTest {
     }
 
     @Test
-    public void createMap_addKeyValue_123_456_onContainsKey_null_throws_NullPointerException() {
-        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        assertThrows(NullPointerException.class, ()-> map.containsKey(null));
-    }
-
-    @Test
     public void createMap_onKeySet_returnsAllKeysFromMap() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
         for(int i = 0; i < 10; i++) map.put(i, i * 10);
@@ -272,5 +275,254 @@ class CustomLinkedHashMapTest {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
         assertNull(map.put("123", 456));
         assertFalse(map.containsValue(789));
+    }
+
+    @Test
+    public void createTwoNonEqualMap_onEquals_returns_false() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertNotEquals(map, mapTwo);
+    }
+
+    @Test
+    public void createMap_onEquals_itself_returns_true() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        assertEquals(map, map);
+    }
+
+    @Test
+    public void createTwoEqualMapTypes_onEquals_returns_true() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        CustomLinkedHashMap<String, Integer> mapTwo = new CustomLinkedHashMap<>(String.class, Integer.class);
+        assertEquals(map, mapTwo);
+    }
+
+    @Test
+    public void createTwoObjectTypes_onEquals_returns_False() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        List<String> arrayList = new ArrayList<>();
+        assertNotEquals(map, arrayList);
+    }
+
+    @Test
+    public void createTwoNonEqualMapTypes_andAddingItems_onEquals_returns_false() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        for(int i = 0; i < 10; i++) map.put(String.valueOf(i), i * 10);
+        CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        for(int i = 0; i < 10; i++) mapTwo.put(i, i * 10);
+        assertNotEquals(map, mapTwo);
+    }
+
+    @Test
+    public void createTwoEqualMapTypes_andAddingItems_onEquals_returns_true() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        for(int i = 0; i < 10; i++) map.put(String.valueOf(i), i * 10);
+        CustomLinkedHashMap<String, Integer> mapTwo = new CustomLinkedHashMap<>(String.class, Integer.class);
+        for(int i = 0; i < 10; i++) mapTwo.put(String.valueOf(i), i * 10);
+        assertEquals(map, mapTwo);
+    }
+
+    @Test
+    public void createTwoEqualMapTypes_andAddingItems_thatCauseNoMatch_onEquals_returns_false() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        for(int i = 0; i < 10; i++) map.put(String.valueOf(i), i * 10);
+        CustomLinkedHashMap<String, Integer> mapTwo = new CustomLinkedHashMap<>(String.class, Integer.class);
+        for(int i = 0; i < 10; i++) mapTwo.put(String.valueOf(i), i * 100);
+        assertNotEquals(map, mapTwo);
+    }
+
+    @Test
+    public void createTwoDifferentMapTypes__onEquals_returns_false() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        for(int i = 0; i < 10; i++) map.put(String.valueOf(i), i * 10);
+        CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        for(int i = 0; i < 10; i++) mapTwo.put(i, i * 100);
+        assertNotEquals(map, mapTwo);
+    }
+
+    @Test
+    public void createTwoMaps_withDifferentSizes_returns_false() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        for(int i = 0; i < 5; i++) map.put(String.valueOf(i), i * 10);
+        CustomLinkedHashMap<String, Integer> mapTwo = new CustomLinkedHashMap<>(String.class, Integer.class);
+        for(int i = 0; i < 10; i++) mapTwo.put(String.valueOf(i), i * 100);
+        assertNotEquals(map, mapTwo);
+    }
+
+    @Test
+    public void onReplacingValueInMap_withNullKey_throws_NullPointerException() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
+        assertThrows(NullPointerException.class, ()-> map.replace("10", null));
+    }
+
+    @Test
+    public void onReplacingValueInMap_withNullValue_throws_NullPointerException() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertThrows(NullPointerException.class, ()-> map.replace(null, 10));
+    }
+
+    @Test
+    public void onReplacingValueInMap_withNullKeyAndValue_throws_NullPointerException() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertThrows(NullPointerException.class, ()-> map.replace(null, null));
+    }
+
+    @Test
+    public void onReplacingValueInMap_thatDoesNotExist_returns_null() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertNull(map.replace(1, 1));
+    }
+
+    @Test
+    public void onReplacingValueInMapForKeyThatDoesExist_returns_previousKey_andUpdatesValue() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 1);
+        assertEquals(1, map.replace(1, 10));
+        assertEquals(10, map.get(1));
+    }
+
+    @Test
+    public void onReplacingKeyAndValue_withNullKey_throws_NullPointerException() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 1);
+        assertThrows(NullPointerException.class, ()-> map.replace(null, 1, 1));
+    }
+
+    @Test
+    public void onReplacingKeyAndValue_withNullMatchingValue_throws_NullPointerException() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 1);
+        assertThrows(NullPointerException.class, ()-> map.replace(1, null, 1));
+    }
+
+    @Test
+    public void onReplacingKeyAndValue_withNullNewValue_throws_NullPointerException() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 1);
+        assertThrows(NullPointerException.class, ()-> map.replace(1, 1, null));
+    }
+
+    @Test
+    public void onReplacingKeyAndValue_withNullKeyAndValueAndNullNewValue_throws_NullPointerException() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 1);
+        assertThrows(NullPointerException.class, ()-> map.replace(null, null, null));
+    }
+
+    @Test
+    public void onReplacingKeyAndValue_withValueReturnedFromKeyDoesNotMatch_returns_false() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 1);
+        assertFalse(map.replace(1,2,2));
+    }
+
+    @Test
+    public void onReplacingKeyAndValue_withValueReturnedFromKeyDoesMatch_returns_true_andUpdatesValue() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 1);
+        assertTrue(map.replace(1,1,2));
+        assertEquals(2, map.get(1));
+    }
+
+    @Test
+    public void onGettingValuesAsCollection_fromEmptyMap_returnsEmptyCollection() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertEquals(0, map.values().size());
+    }
+
+    @Test
+    public void onGettingValuesAsCollection_fromMapOfTenInteger_returnsMatchingCollectionOfValues() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        for(int i = 0; i < 10; i++)
+            map.put(i, i * 10);
+
+        Collection<Integer> expectedValues = new ArrayList<>();
+        for(int i = 0; i < 10; i++)
+            expectedValues.add(i * 10);
+
+        Collection<?> values = map.values();
+        assertEquals(10, values.size());
+        assertEquals(10, expectedValues.size());
+        assertEquals(expectedValues, values);
+    }
+
+    @Test
+    public void givenEmptyMap_on_toString_returns_emptyBraces() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertEquals("{}", map.toString());
+    }
+
+    @Test
+    public void givenMapOf_5_values_on_intKey_intValue_on_toString_returns_correctString() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        for(int i = 0; i < 5; i++) map.put(i, i * 10);
+        assertEquals("{0=0, 1=10, 2=20, 3=30, 4=40}", map.toString());
+    }
+
+    @Test
+    public void givenEmptyMap_onIsEmpty_returnsTrue() {
+        assertTrue(new CustomLinkedHashMap<>(Integer.class, Integer.class).isEmpty());
+    }
+
+    @Test
+    public void givenMapWithOneEntry_onIsEmpty_returnsFalse() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 10);
+        assertFalse(map.isEmpty());
+    }
+
+    @Test
+    public void givenMapWithEntries_onClear_thenIsEmpty_returnsTrue() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 100);
+        map.put(2, 200);
+        map.clear();
+        assertTrue(map.isEmpty());
+    }
+
+    @Test
+    public void givenEmptyMap_onEntrySet_returnsEmptySet() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        Set<CustomLinkedHashMap.Entry<Integer, Integer>> entries = map.entrySet();
+        assertEquals(0, entries.size());
+    }
+
+    @Test
+    public void givenEmptyMap_onPutAllNullMap_throwsNullPointerException() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertThrows(NullPointerException.class, () -> map.putAll(null));
+    }
+
+    @Test
+    public void givenEmptyMap_onPutAllEmptyMap_doesNotChangeMap() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.putAll(mapTwo);
+        assertEquals(0, map.size());
+    }
+
+    @Test
+    public void givenEmptyMap_onPutAllWithEntries_addsAllEntries() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        mapTwo.put(1, 100);
+        mapTwo.put(2, 200);
+        map.putAll(mapTwo);
+        assertEquals(2, map.size());
+        assertEquals(100, map.get(1));
+        assertEquals(200, map.get(2));
+    }
+
+    @Test
+    public void givenMapWithEntries_onPutAll_addsNewEntriesAndUpdatesExisting() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put(1, 100);
+        CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        mapTwo.put(1, 150);
+        mapTwo.put(2, 200);
+        map.putAll(mapTwo);
+        assertEquals(2, map.size());
+        assertEquals(150, map.get(1));
+        assertEquals(200, map.get(2));
     }
 }

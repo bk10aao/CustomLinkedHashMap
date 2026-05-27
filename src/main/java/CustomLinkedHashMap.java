@@ -1,20 +1,28 @@
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
-import static org.springframework.util.Assert.isInstanceOf;
+/**
+ * @author Benjamin Kane
+ * @param <K> the type of keys maintained by this map
+ * @param <V> the type of mapped values
+ * @see <a href="https://www.linkedin.com/in/benjamin-kane-81149482/">LinkedIn</a>
+ * @see <a href="https://github.com/bk10aao">GitHub account bk10aao</a>
+ * @see <a href="https://github.com/bk10aao/CustomMap">Repository</a>
+ */
+public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
-public class CustomLinkedHashMap<K, V> {
-
-    private Map<K, Node<K, V>> map;
+    private final Map<K, Node<K, V>> map;
 
     private transient Node<K, V> head;
     private transient Node<K, V> tail;
 
-    private Class<K> key;
-    private Class<V> value;
+    private final Class<K> key;
+    private final Class<V> value;
 
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value) {
         this(key, value, 0.75f);
@@ -22,7 +30,7 @@ public class CustomLinkedHashMap<K, V> {
 
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value, float loadFactor) {
         if (loadFactor <= 0 || loadFactor > 1)
-            throw new IllegalArgumentException("Invalid load factor");
+            throw new IllegalArgumentException();
         this.key = key;
         this.value = value;
         this.map = new HashMap<>();
@@ -30,16 +38,18 @@ public class CustomLinkedHashMap<K, V> {
 
     public void clear() {
         head = tail = null;
-        map = new HashMap<>();
+        map.clear();
     }
 
-    public boolean containsKey(K key) {
-        requireNonNull(key);
+    public boolean containsKey(final Object key) {
+        if (!this.key.isInstance(key))
+            return false;
         return map.containsKey(key);
     }
 
-    public boolean containsValue(V value) {
-        isInstanceOf(this.value, value, "Key value does not match");
+    public boolean containsValue(final Object value) {
+        if (!this.value.isInstance(value))
+            return false;
         Node<K, V> current = head;
         while (current != null) {
             if (Objects.equals(current.value, value))
@@ -49,23 +59,139 @@ public class CustomLinkedHashMap<K, V> {
         return false;
     }
 
-    public V get(K key) {
-        if(key != null)
-            isInstanceOf(this.key, key, "Key value does not match");
+    public Set<Map.Entry<K, V>> entrySet() {
+        return new java.util.AbstractSet<>() {
+            @Override
+            public int size() {
+                return CustomLinkedHashMap.this.size();
+            }
+
+            @Override
+            public java.util.Iterator<Map.Entry<K, V>> iterator() {
+                return new java.util.Iterator<>() {
+
+                    private Node<K, V> current = head;
+                    private Node<K, V> lastReturned = null;
+
+                    @Override
+                    public boolean hasNext() {
+                        return current != null;
+                    }
+
+                    @Override
+                    public Map.Entry<K, V> next() {
+                        if (!hasNext())
+                            throw new java.util.NoSuchElementException();
+                        lastReturned = current;
+                        current = current.next;
+                        return lastReturned;
+                    }
+
+                    @Override
+                    public void remove() {
+                        if (lastReturned == null)
+                            throw new IllegalStateException();
+                        CustomLinkedHashMap.this.remove(lastReturned.key);
+                        lastReturned = null;
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Map<?, ?> otherMap))
+            return false;
+        if (size() != otherMap.size())
+            return false;
+        if (o instanceof CustomLinkedHashMap<?, ?> otherCustom)
+            if (!Objects.equals(this.key, otherCustom.key) || !Objects.equals(this.value, otherCustom.value))
+                return false;
+        for (Map.Entry<K, V> entry : entrySet()) {
+            K key = entry.getKey();
+            V value = entry.getValue();
+            if (!otherMap.containsKey(key))
+                return false;
+            Object otherValue = otherMap.get(key);
+            if (!Objects.equals(value, otherValue))
+                return false;
+        }
+        return true;
+    }
+
+    public V get(final Object key) {
+        if (!this.key.isInstance(key))
+            return null;
         Node<K, V> node = map.get(key);
         return node != null ? node.getValue() : null;
     }
 
-    public V getOrDefault(final K key, final V defaultValue) {
-        requireNonNull(key, "Key value must not be null.");
+    public V getOrDefault(final Object key, final V defaultValue) {
+        requireNonNull(key);
         V returnValue = get(key);
         return  returnValue != null ? returnValue : defaultValue;
     }
 
-    public V put(K key, V value) {
+    @Override
+    public int hashCode() {
+        int h = 0;
+        for (Map.Entry<K, V> entry : entrySet())
+            h += entry.hashCode();
+        return h;
+    }
+
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    public Set<K> keySet() {
+        return new java.util.AbstractSet<>() {
+            @Override
+            public int size() {
+                return CustomLinkedHashMap.this.size();
+            }
+
+            @Override
+            public java.util.Iterator<K> iterator() {
+                return new java.util.Iterator<>() {
+                    private Node<K, V> current = head;
+                    private Node<K, V> lastReturned = null;
+
+                    @Override
+                    public boolean hasNext() {
+                        return current != null;
+                    }
+
+                    @Override
+                    public K next() {
+                        if (!hasNext())
+                            throw new java.util.NoSuchElementException();
+                        lastReturned = current;
+                        current = current.next;
+                        return lastReturned.key;
+                    }
+
+                    @Override
+                    public void remove() {
+                        if (lastReturned == null)
+                            throw new IllegalStateException();
+                        CustomLinkedHashMap.this.remove(lastReturned.key);
+                        lastReturned = null;
+                    }
+                };
+            }
+        };
+    }
+
+    public V put(final K key, final V value) {
         if(key == null)
             throw new IllegalArgumentException();
-        isInstanceOf(this.key, key, "Key value does not match");
+        if (!this.key.isInstance(key))
+            throw new ClassCastException();
+        if (value != null && !this.value.isInstance(value))
+            throw new ClassCastException();
         Node<K, V> node = map.get(key);
         if(node != null) {
             V previousValue = node.value;
@@ -84,6 +210,13 @@ public class CustomLinkedHashMap<K, V> {
         return null;
     }
 
+    public void putAll(Map<? extends K, ? extends V> m) {
+        Objects.requireNonNull(m);
+        if(!m.isEmpty())
+            for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
+                put(e.getKey(), e.getValue());
+    }
+
     public V putIfAbsent(final K key, final V value) {
         requireNonNull(key);
         requireNonNull(value);
@@ -94,26 +227,26 @@ public class CustomLinkedHashMap<K, V> {
         return null;
     }
 
-    public V remove(Object key) {
+    public V remove(final Object key) {
         requireNonNull(key);
         Node<K, V> node = map.remove(key);
-        if(node == null)
+        if (node == null)
             return null;
         V value = node.value;
-        if(node == head)
-            head = node.next;
-        else
+        if (node.prev != null)
             node.prev.next = node.next;
-        if(node == tail)
-            tail = node.prev;
         else
+            head = node.next;
+        if (node.next != null)
             node.next.prev = node.prev;
+        else
+            tail = node.prev;
         node.prev = null;
         node.next = null;
         return value;
     }
 
-    public boolean remove(final K key, final V value) {
+    public boolean remove(final Object key, final Object value) {
         requireNonNull(key);
         requireNonNull(value);
         Node<K, V> node = map.get(key);
@@ -123,12 +256,69 @@ public class CustomLinkedHashMap<K, V> {
         return true;
     }
 
+    public V replace(final K key, final V value) {
+        requireNonNull(key);
+        requireNonNull(value);
+        if (!this.key.isInstance(key))
+            throw new ClassCastException();
+        if (!this.value.isInstance(value))
+            throw new ClassCastException();
+        Node<K, V> node = map.get(key);
+        if (node == null)
+            return null;
+        V old = node.value;
+        node.value = value;
+        return old;
+    }
+
+    public boolean replace(final K key, final V oldValue, final V newValue) {
+        requireNonNull(key);
+        requireNonNull(oldValue);
+        requireNonNull(newValue);
+        if(!this.key.isInstance(key))
+            throw new ClassCastException();
+        if (!this.value.isInstance(oldValue))
+            throw new ClassCastException();
+        if (!this.value.isInstance(newValue))
+            throw new ClassCastException();
+        Node<K, V> node = map.get(key);
+        if (node == null)
+            return false;
+        if(node.value.equals(oldValue)) {
+            node.setValue(newValue);
+            return true;
+        }
+        return false;
+    }
+
     public int size() {
         return map.size();
     }
 
-    public Set<K> keySet() {
-        return map.keySet();
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("{");
+        Node<K, V> current = head;
+        boolean first = true;
+        while (current != null) {
+            if (!first) stringBuilder.append(", ");
+            stringBuilder.append(current.key).append("=").append(current.value);
+            first = false;
+            current = current.next;
+        }
+        return stringBuilder.append("}").toString();
+    }
+
+    public Collection<V> values() {
+        Collection<V> values = new ArrayList<>();
+        if (isEmpty())
+            return values;
+        Node<K, V> current = head;
+        while (current != null) {
+            values.add(current.value);
+            current = current.next;
+        }
+        return values;
     }
 
 
@@ -162,10 +352,7 @@ public class CustomLinkedHashMap<K, V> {
 
         @Override
         public String toString() {
-            return "Node{" +
-                    "key=" + key +
-                    ", value=" + value +
-                    '}';
+            return key + "=" + value;
         }
     }
 }
