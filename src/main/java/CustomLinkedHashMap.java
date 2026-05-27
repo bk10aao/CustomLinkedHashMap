@@ -29,7 +29,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     }
 
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value, float loadFactor) {
-        if (loadFactor <= 0 || loadFactor > 1)
+        if(loadFactor <= 0 || loadFactor > 1)
             throw new IllegalArgumentException();
         this.key = key;
         this.value = value;
@@ -42,17 +42,17 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     }
 
     public boolean containsKey(final Object key) {
-        if (!this.key.isInstance(key))
+        if(!this.key.isInstance(key))
             return false;
         return map.containsKey(key);
     }
 
     public boolean containsValue(final Object value) {
-        if (!this.value.isInstance(value))
+        if(!this.value.isInstance(value))
             return false;
         Node<K, V> current = head;
-        while (current != null) {
-            if (Objects.equals(current.value, value))
+        while(current != null) {
+            if(Objects.equals(current.value, value))
                 return true;
             current = current.next;
         }
@@ -80,7 +80,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
                     @Override
                     public Map.Entry<K, V> next() {
-                        if (!hasNext())
+                        if(!hasNext())
                             throw new java.util.NoSuchElementException();
                         lastReturned = current;
                         current = current.next;
@@ -89,7 +89,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
                     @Override
                     public void remove() {
-                        if (lastReturned == null)
+                        if(lastReturned == null)
                             throw new IllegalStateException();
                         CustomLinkedHashMap.this.remove(lastReturned.key);
                         lastReturned = null;
@@ -101,28 +101,28 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Map<?, ?> otherMap))
+        if(this == o) return true;
+        if(!(o instanceof Map<?, ?> otherMap))
             return false;
-        if (size() != otherMap.size())
+        if(size() != otherMap.size())
             return false;
-        if (o instanceof CustomLinkedHashMap<?, ?> otherCustom)
-            if (!Objects.equals(this.key, otherCustom.key) || !Objects.equals(this.value, otherCustom.value))
+        if(o instanceof CustomLinkedHashMap<?, ?> otherCustom)
+            if(!Objects.equals(this.key, otherCustom.key) || !Objects.equals(this.value, otherCustom.value))
                 return false;
         for (Map.Entry<K, V> entry : entrySet()) {
             K key = entry.getKey();
             V value = entry.getValue();
-            if (!otherMap.containsKey(key))
+            if(!otherMap.containsKey(key))
                 return false;
             Object otherValue = otherMap.get(key);
-            if (!Objects.equals(value, otherValue))
+            if(!Objects.equals(value, otherValue))
                 return false;
         }
         return true;
     }
 
     public V get(final Object key) {
-        if (!this.key.isInstance(key))
+        if(!this.key.isInstance(key))
             return null;
         Node<K, V> node = map.get(key);
         return node != null ? node.getValue() : null;
@@ -166,7 +166,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
                     @Override
                     public K next() {
-                        if (!hasNext())
+                        if(!hasNext())
                             throw new java.util.NoSuchElementException();
                         lastReturned = current;
                         current = current.next;
@@ -175,7 +175,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
                     @Override
                     public void remove() {
-                        if (lastReturned == null)
+                        if(lastReturned == null)
                             throw new IllegalStateException();
                         CustomLinkedHashMap.this.remove(lastReturned.key);
                         lastReturned = null;
@@ -188,9 +188,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     public V put(final K key, final V value) {
         if(key == null)
             throw new IllegalArgumentException();
-        if (!this.key.isInstance(key))
+        if(!this.key.isInstance(key))
             throw new ClassCastException();
-        if (value != null && !this.value.isInstance(value))
+        if(value != null && !this.value.isInstance(value))
             throw new ClassCastException();
         Node<K, V> node = map.get(key);
         if(node != null) {
@@ -200,7 +200,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
         }
         node = new Node<>(key, value);
         map.put(key, node);
-        if (tail == null)
+        if(tail == null)
             head = tail = node;
         else {
             tail.next = node;
@@ -230,14 +230,14 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     public V remove(final Object key) {
         requireNonNull(key);
         Node<K, V> node = map.remove(key);
-        if (node == null)
+        if(node == null)
             return null;
         V value = node.value;
-        if (node.prev != null)
+        if(node.prev != null)
             node.prev.next = node.next;
         else
             head = node.next;
-        if (node.next != null)
+        if(node.next != null)
             node.next.prev = node.prev;
         else
             tail = node.prev;
@@ -250,7 +250,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
         requireNonNull(key);
         requireNonNull(value);
         Node<K, V> node = map.get(key);
-        if (node == null || !Objects.equals(node.value, value))
+        if(node == null || !Objects.equals(node.value, value))
             return false;
         remove(key);
         return true;
@@ -259,12 +259,12 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     public V replace(final K key, final V value) {
         requireNonNull(key);
         requireNonNull(value);
-        if (!this.key.isInstance(key))
+        if(!this.key.isInstance(key))
             throw new ClassCastException();
-        if (!this.value.isInstance(value))
+        if(!this.value.isInstance(value))
             throw new ClassCastException();
         Node<K, V> node = map.get(key);
-        if (node == null)
+        if(node == null)
             return null;
         V old = node.value;
         node.value = value;
@@ -277,12 +277,12 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
         requireNonNull(newValue);
         if(!this.key.isInstance(key))
             throw new ClassCastException();
-        if (!this.value.isInstance(oldValue))
+        if(!this.value.isInstance(oldValue))
             throw new ClassCastException();
-        if (!this.value.isInstance(newValue))
+        if(!this.value.isInstance(newValue))
             throw new ClassCastException();
         Node<K, V> node = map.get(key);
-        if (node == null)
+        if(node == null)
             return false;
         if(node.value.equals(oldValue)) {
             node.setValue(newValue);
@@ -300,9 +300,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
         StringBuilder stringBuilder = new StringBuilder("{");
         Node<K, V> current = head;
         boolean first = true;
-        while (current != null) {
-            if (!first) stringBuilder.append(", ");
-            stringBuilder.append(current.key).append("=").append(current.value);
+        while(current != null) {
+            if(!first)
+                stringBuilder.append(", ");
+            stringBuilder.append(current);
             first = false;
             current = current.next;
         }
@@ -311,10 +312,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
     public Collection<V> values() {
         Collection<V> values = new ArrayList<>();
-        if (isEmpty())
+        if(isEmpty())
             return values;
         Node<K, V> current = head;
-        while (current != null) {
+        while(current != null) {
             values.add(current.value);
             current = current.next;
         }
