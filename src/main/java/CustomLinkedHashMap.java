@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
+
 /**
  * @author Benjamin Kane
  * @param <K> the type of keys maintained by this map
@@ -211,7 +212,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     }
 
     public void putAll(Map<? extends K, ? extends V> m) {
-        Objects.requireNonNull(m);
+        requireNonNull(m);
         if(!m.isEmpty())
             for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
                 put(e.getKey(), e.getValue());
