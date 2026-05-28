@@ -13,7 +13,7 @@ import static java.util.Objects.requireNonNull;
  * @param <V> the type of mapped values
  * @see <a href="https://www.linkedin.com/in/benjamin-kane-81149482/">LinkedIn</a>
  * @see <a href="https://github.com/bk10aao">GitHub account bk10aao</a>
- * @see <a href="https://github.com/bk10aao/CustomMap">Repository</a>
+ * @see <a href="https://github.com/bk10aao/CustomLinkedHashMap">Repository</a>
  */
 public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
