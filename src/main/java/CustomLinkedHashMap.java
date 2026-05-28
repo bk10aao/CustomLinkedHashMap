@@ -34,7 +34,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
             throw new IllegalArgumentException();
         this.key = key;
         this.value = value;
-        this.map = new HashMap<>();
+        this.map = new HashMap<>(16, loadFactor);
     }
 
     public void clear() {
