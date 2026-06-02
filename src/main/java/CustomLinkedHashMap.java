@@ -57,8 +57,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * with a default initial capacity (16), default load factor (0.75),
      * and no maximum entry bounds.
      *
-     * @param  key             the Class token for keys maintained by this map
-     * @param  value           the Class token for mapped values
+     * @param key the Class token for keys maintained by this map
+     * @param value the Class token for mapped values
      * @throws NullPointerException if either the key or value Class token is null
      */
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value) {
@@ -70,9 +70,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * with the specified maximum entry capacity threshold, a default load factor (0.75),
      * and standard insertion-based ordering.
      *
-     * @param  key             the Class token for keys maintained by this map
-     * @param  value           the Class token for mapped values
-     * @param  maxEntries      the maximum entry threshold before removal of the eldest entry triggers
+     * @param key the Class token for keys maintained by this map
+     * @param value the Class token for mapped values
+     * @param maxEntries the maximum entry threshold before removal of the eldest entry triggers
      * @throws IllegalArgumentException if the maxEntries limit is negative
      */
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value, int maxEntries) {
@@ -84,10 +84,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * maximum entry capacity threshold, a default load factor (0.75), and the
      * designated iteration ordering mode.
      *
-     * @param  key             the Class token for keys maintained by this map
-     * @param  value           the Class token for mapped values
-     * @param  maxEntries      the maximum entry threshold before removal of the eldest entry triggers
-     * @param  accessOrder     the ordering mode - {@code true} for access-order, {@code false} for insertion-order
+     * @param key the Class token for keys maintained by this map
+     * @param value the Class token for mapped values
+     * @param maxEntries the maximum entry threshold before removal of the eldest entry triggers
+     * @param accessOrder the ordering mode - {@code true} for access-order, {@code false} for insertion-order
      * @throws IllegalArgumentException if the maxEntries limit is negative
      */
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value, int maxEntries, final boolean accessOrder) {
@@ -99,9 +99,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * with no maximum entry bounds, standard insertion-based ordering, and the
      * specified performance load factor.
      *
-     * @param  key             the Class token for keys maintained by this map
-     * @param  value           the Class token for mapped values
-     * @param  loadFactor      the load factor determining structural resize thresholds
+     * @param key the Class token for keys maintained by this map
+     * @param value the Class token for mapped values
+     * @param loadFactor the load factor determining structural resize thresholds
      * @throws IllegalArgumentException if the load factor is non-positive or greater than 1
      */
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value, float loadFactor) {
@@ -124,7 +124,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * key class token; if the specified key is not an instance of that class,
      * it immediately returns {@code false} instead of querying the map.
      *
-     * @param  key key whose presence in this map is to be tested
+     * @param key key whose presence in this map is to be tested
      * @return {@code true} if this map contains a mapping for the specified key
      */
     public boolean containsKey(final Object key) {
@@ -140,7 +140,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * it immediately returns {@code false}. Otherwise, it performs a linear traversal
      * from the head of the doubly-linked list to find a matching value.
      *
-     * @param  value value whose presence in this map is to be tested
+     * @param value value whose presence in this map is to be tested
      * @return {@code true} if this map maps one or more keys to the specified value
      */
     public boolean containsValue(final Object value) {
@@ -218,7 +218,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * maintain identical key and value {@link Class} type tokens before verifying
      * the underlying entries.
      *
-     * @param  o object to be compared for equality with this map
+     * @param o object to be compared for equality with this map
      * @return {@code true} if the specified object is equal to this map
      */
     @Override
@@ -254,9 +254,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * configured with {@code accessOrder = true}, the underlying structural node
      * is moved to the tail of the doubly-linked list to track recent access.
      *
-     * @param  key the key whose associated value is to be returned
-     * @return the value to which the specified key is mapped, or {@code null}
-     * if this map contains no mapping for the key
+     * @param key the key whose associated value is to be returned
+     * @return the value to which the specified key is mapped,
+     *          or {@code null} if this map contains no mapping for the key
      * @throws NullPointerException if the specified key is null
      */
     public V get(final Object key) {
@@ -281,10 +281,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * located and this map is configured for access-ordering, the accessed node is
      * relocated to the tail of the internal doubly-linked list.
      *
-     * @param  key the key whose associated value is to be returned
-     * @param  defaultValue the fallback value to return if the key is absent or type-incompatible
+     * @param key the key whose associated value is to be returned
+     * @param defaultValue the fallback value to return if the key is absent or type-incompatible
      * @return the value to which the specified key is mapped, or {@code defaultValue}
-     * if this map contains no mapping for the key
+     *          if this map contains no mapping for the key
      * @throws NullPointerException if the specified key is null
      */
     public V getOrDefault(final Object key, final V defaultValue) {
@@ -397,10 +397,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * {@code true}, the oldest entry (located at the {@code head} of the list)
      * is structurally evicted from both the backing map and the sequential list.
      *
-     * @param  key key with which the specified value is to be associated
-     * @param  value value to be associated with the specified key
-     * @return the previous value associated with {@code key}, or {@code null}
-     * if there was no mapping for {@code key}
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @return the previous value associated with {@code key}, or {@code null} if there was no mapping for {@code key}
      * @throws IllegalArgumentException if the specified key is null
      * @throws ClassCastException if the key or value runtime types are incompatible
      * with this map's defined tokens
@@ -443,11 +442,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * method. This ensures that type safety validation, structural linking, and
      * eviction checks are consistently executed for every imported entry.
      *
-     * @param  m mappings to be stored in this map
+     * @param m mappings to be stored in this map
      * @throws NullPointerException if the specified map is null
      * @throws IllegalArgumentException if any key in the specified map is null
-     * @throws ClassCastException if a key or value type in the specified map
-     * is incompatible with this map's defined tokens
+     * @throws ClassCastException if a key or value type in the specified map is incompatible with this map's defined tokens
      */
     public void putAll(Map<? extends K, ? extends V> m) {
         requireNonNull(m);
@@ -467,13 +465,12 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * passed to {@link #put(Object, Object)}, where runtime type-token verification,
      * double-linked list positioning, and eldest-entry eviction are handled.
      *
-     * @param  key key with which the specified value is to be associated
-     * @param  value value to be associated with the specified key
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
      * @return the previous value associated with the specified key, or {@code null}
      * if there was no mapping for the key
      * @throws NullPointerException if the specified key or value is null
-     * @throws ClassCastException if the key or value runtime types are incompatible
-     * with this map's defined tokens
+     * @throws ClassCastException if the key or value runtime types are incompatible with this map's defined tokens
      */
     public V putIfAbsent(final K key, final V value) {
         requireNonNull(key);
@@ -496,8 +493,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * to prevent memory retention.
      *
      * @param  key key whose mapping is to be removed from the map
-     * @return the previous value associated with {@code key}, or {@code null}
-     * if there was no mapping for {@code key}
+     * @return the previous value associated with {@code key}, or {@code null} if there was no mapping for {@code key}
      * @throws NullPointerException if the specified key is null
      */
     public V remove(final Object key) {
@@ -710,12 +706,12 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * <br>
      * {@code initialCapacity = ceil(maxEntries / loadFactor) + 1}
      *
-     * @param key             the {@link Class} token representing the allowed runtime type for keys
-     * @param value           the {@link Class} token representing the allowed runtime type for values
-     * @param maxEntries      the maximum number of elements this map can hold before triggering eviction
-     * @param loadFactor       the load factor threshold used to configure the backing map's resizing behavior
-     * @param accessOrder     {@code true} for access-order (least-recently accessed to most-recently accessed),
-     * {@code false} for insertion-order
+     * @param key the {@link Class} token representing the allowed runtime type for keys
+     * @param value the {@link Class} token representing the allowed runtime type for values
+     * @param maxEntries the maximum number of elements this map can hold before triggering eviction
+     * @param loadFactor the load factor threshold used to configure the backing map's resizing behavior
+     * @param accessOrder {@code true} for access-order (least-recently accessed to most-recently accessed),
+     *                    {@code false} for insertion-order
      * @throws IllegalArgumentException if {@code loadFactor <= 0}, {@code loadFactor > 1}, or {@code maxEntries < 0}
      */
     private CustomLinkedHashMap(final Class<K> key, final Class<V> value, int maxEntries, float loadFactor, boolean accessOrder) {
@@ -772,7 +768,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
          * The structural pointer references ({@code prev} and {@code next})
          * are implicitly initialized to {@code null}.
          *
-         * @param key   the key representing this mapping
+         * @param key the key representing this mapping
          * @param value the value associated with the key
          */
         Node(K key, V value) {
