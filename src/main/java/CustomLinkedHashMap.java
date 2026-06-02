@@ -28,9 +28,9 @@ import static java.util.Objects.requireNonNull;
  * <b>Note that this implementation is not synchronized</b> and does not detect concurrent modifications.
  * Structural modifications made during iteration over any collection views will produce undefined behavior.
  *
- * @author Benjamin Kane
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
+ * @author Benjamin Kane
  * @see <a href="https://www.linkedin.com/in/benjamin-kane-81149482/">LinkedIn</a>
  * @see <a href="https://github.com/bk10aao">GitHub account bk10aao</a>
  * @see <a href="https://github.com/bk10aao/CustomMap">Repository</a>
