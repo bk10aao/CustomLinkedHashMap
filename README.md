@@ -1,3 +1,15 @@
+# CustomLinkedHashMap
+
+Implementation of a LinkedHashMap.
+
+All methods implemented are identical to those found in the Java Map interface.
+
+# Build and Test
+
+To build and test the project run command `./gradlew clean build`
+
+To test the project run command `./gradlew test`
+
 # Time Complexity
 
 | Method                             | CustomLinkedHashMap              | Java LinkedHashMap               | Winner  |
