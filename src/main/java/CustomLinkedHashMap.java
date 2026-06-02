@@ -1,3 +1,5 @@
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,31 +35,22 @@ import static java.util.Objects.requireNonNull;
  * @see <a href="https://github.com/bk10aao">GitHub account bk10aao</a>
  * @see <a href="https://github.com/bk10aao/CustomMap">Repository</a>
  */
-public class CustomLinkedHashMap<K, V> implements Map<K, V>{
+public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
 
     private final int maxEntries;
 
     private final Map<K, Node<K, V>> map;
 
-    /**
-     * The head (eldest) of the doubly linked list.
-     */
     private transient Node<K, V> head;
-    /**
-     * The tail (youngest) of the doubly linked list.
-     */
     private transient Node<K, V> tail;
 
-    /***
-     * The iteration ordering method for this linked hash map: {@code true}
-     * for access-order, {@code false} for insertion-order.
-     *
-     * @serial
-     */
     private final boolean accessOrder;
 
     private final Class<K> key;
     private final Class<V> value;
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs an empty insertion-ordered {@code CustomLinkedHashMap} instance
