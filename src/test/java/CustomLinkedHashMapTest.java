@@ -3,6 +3,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -222,9 +223,11 @@ class CustomLinkedHashMapTest {
     @Test
     public void createMap_onKeySet_returnsAllKeysFromMap() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        for(int i = 0; i < 10; i++) map.put(i, i * 10);
+        for(int i = 0; i < 10; i++)
+            map.put(i, i * 10);
         Set<Integer> keysExpected = new HashSet<>();
-        for(int i = 0; i < 10; i++) keysExpected.add(i);
+        for(int i = 0; i < 10; i++)
+            keysExpected.add(i);
         Set<Integer> keys = map.keySet();
         assertEquals(keysExpected, keys);
     }
@@ -238,14 +241,16 @@ class CustomLinkedHashMapTest {
     @Test
     public void createMap_onGetOrDefault_withKeyValueThatDoesNotExist_returnsDefaultOf_1000() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        for (int i = 0; i < 13; i++) map.put(i, i * 10);
+        for (int i = 0; i < 13; i++)
+            map.put(i, i * 10);
         assertEquals(1000, map.getOrDefault(100, 1000));
     }
 
     @Test
     public void createMap_onGetOrDefault_withKeyValueThatDoesExist_returnsValueOf_100() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        for (int i = 0; i < 13; i++) map.put(i, i * 10);
+        for (int i = 0; i < 13; i++)
+            map.put(i, i * 10);
         assertEquals(100, map.getOrDefault(10, 1000));
     }
 
@@ -307,45 +312,55 @@ class CustomLinkedHashMapTest {
     @Test
     public void createTwoNonEqualMapTypes_andAddingItems_onEquals_returns_false() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        for(int i = 0; i < 10; i++) map.put(String.valueOf(i), i * 10);
+        for(int i = 0; i < 10; i++)
+            map.put(String.valueOf(i), i * 10);
         CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        for(int i = 0; i < 10; i++) mapTwo.put(i, i * 10);
+        for(int i = 0; i < 10; i++)
+            mapTwo.put(i, i * 10);
         assertNotEquals(map, mapTwo);
     }
 
     @Test
     public void createTwoEqualMapTypes_andAddingItems_onEquals_returns_true() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        for(int i = 0; i < 10; i++) map.put(String.valueOf(i), i * 10);
+        for(int i = 0; i < 10; i++)
+            map.put(String.valueOf(i), i * 10);
         CustomLinkedHashMap<String, Integer> mapTwo = new CustomLinkedHashMap<>(String.class, Integer.class);
-        for(int i = 0; i < 10; i++) mapTwo.put(String.valueOf(i), i * 10);
+        for(int i = 0; i < 10; i++)
+            mapTwo.put(String.valueOf(i), i * 10);
         assertEquals(map, mapTwo);
     }
 
     @Test
     public void createTwoEqualMapTypes_andAddingItems_thatCauseNoMatch_onEquals_returns_false() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        for(int i = 0; i < 10; i++) map.put(String.valueOf(i), i * 10);
+        for(int i = 0; i < 10; i++)
+            map.put(String.valueOf(i), i * 10);
         CustomLinkedHashMap<String, Integer> mapTwo = new CustomLinkedHashMap<>(String.class, Integer.class);
-        for(int i = 0; i < 10; i++) mapTwo.put(String.valueOf(i), i * 100);
+        for(int i = 0; i < 10; i++)
+            mapTwo.put(String.valueOf(i), i * 100);
         assertNotEquals(map, mapTwo);
     }
 
     @Test
     public void createTwoDifferentMapTypes__onEquals_returns_false() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        for(int i = 0; i < 10; i++) map.put(String.valueOf(i), i * 10);
+        for(int i = 0; i < 10; i++)
+            map.put(String.valueOf(i), i * 10);
         CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        for(int i = 0; i < 10; i++) mapTwo.put(i, i * 100);
+        for(int i = 0; i < 10; i++)
+            mapTwo.put(i, i * 100);
         assertNotEquals(map, mapTwo);
     }
 
     @Test
     public void createTwoMaps_withDifferentSizes_returns_false() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        for(int i = 0; i < 5; i++) map.put(String.valueOf(i), i * 10);
+        for(int i = 0; i < 5; i++)
+            map.put(String.valueOf(i), i * 10);
         CustomLinkedHashMap<String, Integer> mapTwo = new CustomLinkedHashMap<>(String.class, Integer.class);
-        for(int i = 0; i < 10; i++) mapTwo.put(String.valueOf(i), i * 100);
+        for(int i = 0; i < 10; i++)
+            mapTwo.put(String.valueOf(i), i * 100);
         assertNotEquals(map, mapTwo);
     }
 
@@ -455,7 +470,8 @@ class CustomLinkedHashMapTest {
     @Test
     public void givenMapOf_5_values_on_intKey_intValue_on_toString_returns_correctString() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        for(int i = 0; i < 5; i++) map.put(i, i * 10);
+        for(int i = 0; i < 5; i++)
+            map.put(i, i * 10);
         assertEquals("{0=0, 1=10, 2=20, 3=30, 4=40}", map.toString());
     }
 
@@ -524,5 +540,73 @@ class CustomLinkedHashMapTest {
         assertEquals(2, map.size());
         assertEquals(150, map.get(1));
         assertEquals(200, map.get(2));
+    }
+
+    @Test
+    public void onInstantiatingMapAsCache_withSizeOf_negative_1_throws_IllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new CustomLinkedHashMap<>(Integer.class, Integer.class, -1, true)
+        );
+    }
+
+    @Test
+    public void onInstantiatingMapAsCache_withCacheCapacityOf_10_returnsSizeOf_0() {
+        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(Integer.class, Integer.class, 10, true);
+        assertEquals(0, cache.size());
+    }
+
+    @Test
+    public void givenMapAsCache_withValues_1_2_3_onGet_4_returns_null() {
+        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(Integer.class, Integer.class, 10, true);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        cache.put(3, 3);
+        assertNull(cache.get(4));
+    }
+
+    @Test
+    public void givenMapAsCache_withValues_1_2_3_onGet_3_returns_3() {
+        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(Integer.class, Integer.class, 10, true);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        cache.put(3, 3);
+        assertEquals(3, cache.get(3));
+    }
+
+    @Test
+    public void givenMapAsCache_withValues_1_2_3_onPut_4_4_returnsSizeOf_3() {
+        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(Integer.class, Integer.class, 3, true);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        cache.put(3, 3);
+        assertEquals(3, cache.size());
+    }
+
+    @Test
+    public void givenMapAsCacheOfSize_5_on_addingSizeValues_removesLeastUsedCacheValueOf_1_andReturns_on_get_1_returns_null() {
+        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(Integer.class, Integer.class, 5, true);
+        cache.put(1, 1);
+        cache.put(2, 2);
+        cache.put(3, 3);
+        cache.put(4, 4);
+        cache.put(5, 5);
+        cache.put(6, 6);
+        assertNull(cache.get(1));
+        assertEquals(5, cache.size());
+        assertFalse(cache.containsKey(1));
+        assertFalse(cache.containsValue(1));
+    }
+
+    @Test
+    public void givenLRUCache_whenReadingAnItem_itMovesToTheEndOfTheIterationLine() {
+        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(Integer.class, Integer.class, 3, true);
+        cache.put(1, 10);
+        cache.put(2, 20);
+        cache.put(3, 30);
+        cache.get(1);
+        Iterator<Integer> keyIterator = cache.keySet().iterator();
+        assertEquals(2, keyIterator.next());
+        assertEquals(3, keyIterator.next());
+        assertEquals(1, keyIterator.next());
     }
 }

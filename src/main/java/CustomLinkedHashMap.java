@@ -17,6 +17,10 @@ import static java.util.Objects.requireNonNull;
  */
 public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
+    private final boolean accessOrder;
+
+    private final int maxEntries;
+
     private final Map<K, Node<K, V>> map;
 
     private transient Node<K, V> head;
@@ -26,15 +30,19 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     private final Class<V> value;
 
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value) {
-        this(key, value, 0.75f);
+        this(key, value, Integer.MAX_VALUE, 0.75f, false);
+    }
+
+    public CustomLinkedHashMap(final Class<K> key, final Class<V> value, int maxEntries) {
+        this(key, value, maxEntries, 0.75f, false);
+    }
+
+    public CustomLinkedHashMap(final Class<K> key, final Class<V> value, int maxEntries, final boolean accessOrder) {
+        this(key, value, maxEntries, 0.75f, accessOrder);
     }
 
     public CustomLinkedHashMap(final Class<K> key, final Class<V> value, float loadFactor) {
-        if(loadFactor <= 0 || loadFactor > 1)
-            throw new IllegalArgumentException();
-        this.key = key;
-        this.value = value;
-        this.map = new HashMap<>(16, loadFactor);
+        this(key, value, Integer.MAX_VALUE, loadFactor, false);
     }
 
     public void clear() {
@@ -102,7 +110,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
 
     @Override
     public boolean equals(final Object o) {
-        if(this == o) return true;
+        if(this == o)
+            return true;
         if(!(o instanceof Map<?, ?> otherMap))
             return false;
         if(size() != otherMap.size())
@@ -110,7 +119,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
         if(o instanceof CustomLinkedHashMap<?, ?> otherCustom)
             if(!Objects.equals(this.key, otherCustom.key) || !Objects.equals(this.value, otherCustom.value))
                 return false;
-        for (Map.Entry<K, V> entry : entrySet()) {
+        for(Map.Entry<K, V> entry : entrySet()) {
             K key = entry.getKey();
             V value = entry.getValue();
             if(!otherMap.containsKey(key))
@@ -123,22 +132,33 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     }
 
     public V get(final Object key) {
+        requireNonNull(key);
         if(!this.key.isInstance(key))
             return null;
         Node<K, V> node = map.get(key);
-        return node != null ? node.getValue() : null;
+        if(node == null)
+            return null;
+        if(accessOrder)
+            moveToTail(node);
+        return node.getValue();
     }
 
     public V getOrDefault(final Object key, final V defaultValue) {
         requireNonNull(key);
-        V returnValue = get(key);
-        return  returnValue != null ? returnValue : defaultValue;
+        if(!this.key.isInstance(key))
+            return defaultValue;
+        Node<K, V> node = map.get(key);
+        if(node == null)
+            return defaultValue;
+        if(accessOrder)
+            moveToTail(node);
+        return  node.getValue();
     }
 
     @Override
     public int hashCode() {
         int h = 0;
-        for (Map.Entry<K, V> entry : entrySet())
+        for(Map.Entry<K, V> entry : entrySet())
             h += entry.hashCode();
         return h;
     }
@@ -189,14 +209,14 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
     public V put(final K key, final V value) {
         if(key == null)
             throw new IllegalArgumentException();
-        if(!this.key.isInstance(key))
-            throw new ClassCastException();
-        if(value != null && !this.value.isInstance(value))
+        if(!this.key.isInstance(key) || value != null && !this.value.isInstance(value))
             throw new ClassCastException();
         Node<K, V> node = map.get(key);
         if(node != null) {
             V previousValue = node.value;
             node.value = value;
+            if(accessOrder)
+                moveToTail(node);
             return previousValue;
         }
         node = new Node<>(key, value);
@@ -208,13 +228,15 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
             node.prev = tail;
             tail = node;
         }
+        if(removeEldestEntry(head))
+            remove(head.key);
         return null;
     }
 
     public void putAll(Map<? extends K, ? extends V> m) {
         requireNonNull(m);
         if(!m.isEmpty())
-            for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
+            for(Map.Entry<? extends K, ? extends V> e : m.entrySet())
                 put(e.getKey(), e.getValue());
     }
 
@@ -255,6 +277,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
             return false;
         remove(key);
         return true;
+    }
+
+    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+        return size() > maxEntries;
     }
 
     public V replace(final K key, final V value) {
@@ -323,6 +349,35 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>{
         return values;
     }
 
+    private CustomLinkedHashMap(final Class<K> key, final Class<V> value, int maxEntries, float loadFactor, boolean accessOrder) {
+        if(loadFactor <= 0 || loadFactor > 1 || maxEntries < 0)
+            throw new IllegalArgumentException();
+        this.key = key;
+        this.value = value;
+        this.maxEntries = maxEntries;
+        this.accessOrder = accessOrder;
+        int initialCapacity = (maxEntries == Integer.MAX_VALUE) ? 16 : (int) Math.ceil(maxEntries / loadFactor) + 1;
+        this.map = new HashMap<>(initialCapacity, loadFactor);
+    }
+
+    private void moveToTail(Node<K, V> node) {
+        if(node == tail)
+            return;
+        if(node.prev != null)
+            node.prev.next = node.next;
+        else
+            head = node.next;
+        if(node.next != null)
+            node.next.prev = node.prev;
+        node.prev = tail;
+        node.next = null;
+        if(tail == null)
+            head = tail = node;
+        else {
+            tail.next = node;
+            tail = node;
+        }
+    }
 
     private static class Node<K, V> implements Map.Entry<K, V> {
         K key;
