@@ -1,4 +1,4 @@
-# CustomLinkedHashMap
+# Custom Linked HashMap
 
 Implementation of a LinkedHashMap.
 
