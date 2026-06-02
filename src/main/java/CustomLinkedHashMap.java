@@ -296,7 +296,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             return defaultValue;
         if(accessOrder)
             moveToTail(node);
-        return  node.getValue();
+        return node.getValue();
     }
 
     /**
@@ -492,7 +492,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * references where appropriate) and clearing the node's individual layout links
      * to prevent memory retention.
      *
-     * @param  key key whose mapping is to be removed from the map
+     * @param key key whose mapping is to be removed from the map
      * @return the previous value associated with {@code key}, or {@code null} if there was no mapping for {@code key}
      * @throws NullPointerException if the specified key is null
      */
@@ -526,8 +526,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * passed to {@link #remove(Object)} to be structurally unlinked from both the
      * backing map and the doubly-linked list.
      *
-     * @param  key key with which the specified value is associated
-     * @param  value value expected to be associated with the specified key
+     * @param key key with which the specified value is associated
+     * @param value value expected to be associated with the specified key
      * @return {@code true} if the value was removed, {@code false} otherwise
      * @throws NullPointerException if the specified key or value is null
      */
@@ -551,7 +551,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * exceeds the configured {@code maxEntries} threshold, signaling that the
      * entry at the {@code head} of the doubly-linked list should be structurally removed.
      *
-     * @param  eldest the least recently accessed or oldest inserted entry in the map,
+     * @param eldest the least recently accessed or oldest inserted entry in the map,
      * located at the head of the tracking list
      * @return {@code true} if the eldest entry should be removed from the map;
      * {@code false} if it should be retained
@@ -572,8 +572,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * specified value, and the previous value is returned. If the key is not present,
      * the map remains unmodified and {@code null} is returned.
      *
-     * @param  key key with which the specified value is associated
-     * @param  value value to be associated with the specified key
+     * @param key key with which the specified value is associated
+     * @param value value to be associated with the specified key
      * @return the previous value associated with the specified key, or {@code null}
      * if there was no mapping for the key
      * @throws NullPointerException if the specified key or value is null
@@ -610,9 +610,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * {@code newValue} and {@code true} is returned if and only if the values match.
      * Otherwise, the map remains unmodified and {@code false} is returned.
      *
-     * @param  key key with which the specified value is associated
-     * @param  oldValue value expected to be associated with the specified key
-     * @param  newValue value to be associated with the specified key
+     * @param key key with which the specified value is associated
+     * @param oldValue value expected to be associated with the specified key
+     * @param newValue value to be associated with the specified key
      * @return {@code true} if the value was replaced, {@code false} otherwise
      * @throws NullPointerException if the specified key, oldValue, or newValue is null
      * @throws ClassCastException if the key, oldValue, or newValue runtime types
@@ -799,7 +799,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         /**
          * Replaces the value corresponding to this entry with the specified value.
          *
-         * @param  newValue new value to be stored in this entry
+         * @param newValue new value to be stored in this entry
          * @return the old value corresponding to the entry
          */
         @Override
