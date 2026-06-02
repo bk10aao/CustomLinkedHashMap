@@ -70,6 +70,14 @@ class CustomLinkedHashMapTest {
     }
 
     @Test
+    public void createMap_addItemsWithKeyValue_abc_def_onGet_keyOfTypeInteger_123_returns_null() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
+        assertNull(map.put("abc", "def"));
+        Object value = map.get(123);
+        assertNull(value);
+    }
+
+    @Test
     public void createMap_addItemsWithKeyValue_abc_def_onGet_abc_returns_def() {
         CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
         assertNull(map.put("abc", "def"));
@@ -107,6 +115,12 @@ class CustomLinkedHashMapTest {
     public void createMapOfKeyValue_String_String_onRemoveKeyOfNull_throws_NullPointerException() {
         CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
         assertThrows(NullPointerException.class, ()-> map.remove(null));
+    }
+
+    @Test
+    public void createMapOfKeyValue_String_String_onContainsKey_ofType_Integer_returnsFalse() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
+        assertFalse(map.containsKey(1));
     }
 
     @Test
@@ -239,6 +253,12 @@ class CustomLinkedHashMapTest {
     }
 
     @Test
+    public void createMapOfType_String_String_onGetOrDefault_withKeyValueOfIntegerType_andReturnValue_DUMMY_returns_DUMMY() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
+        assertEquals("DUMMY", map.getOrDefault(1, "DUMMY"));
+    }
+
+    @Test
     public void createMap_onGetOrDefault_withKeyValueThatDoesNotExist_returnsDefaultOf_1000() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
         for (int i = 0; i < 13; i++)
@@ -269,6 +289,13 @@ class CustomLinkedHashMapTest {
     }
 
     @Test
+    public void createMapOf_String_String_onContainsValue_ofTypeInteger_returns_false() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
+        assertNull(map.put("123", "456"));
+        assertFalse(map.containsValue(456));
+    }
+
+    @Test
     public void createMap_addKeyValue_123_456_onContainsValue_456_returns_true() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
         assertNull(map.put("123", 456));
@@ -286,6 +313,15 @@ class CustomLinkedHashMapTest {
     public void createTwoNonEqualMap_onEquals_returns_false() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
         CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertNotEquals(map, mapTwo);
+    }
+
+    @Test
+    public void createTwoNonEqualMaps_andAddingItems_onEquals_returns_false() {
+        CustomLinkedHashMap map = new CustomLinkedHashMap(String.class, Integer.class);
+        for(int i = 0; i < 11; i++) map.put(String.valueOf(i), i * 10);
+        CustomLinkedHashMap mapTwo = new CustomLinkedHashMap(Integer.class, Integer.class);
+        for(int i = 0; i < 10; i++) mapTwo.put(i, i * 10);
         assertNotEquals(map, mapTwo);
     }
 
@@ -604,6 +640,19 @@ class CustomLinkedHashMapTest {
         cache.put(2, 20);
         cache.put(3, 30);
         cache.get(1);
+        Iterator<Integer> keyIterator = cache.keySet().iterator();
+        assertEquals(2, keyIterator.next());
+        assertEquals(3, keyIterator.next());
+        assertEquals(1, keyIterator.next());
+    }
+
+    @Test
+    public void givenLRUCache_whenReadingAnItemWithGetOrDefault_itMovesToTheEndOfTheIterationLine() {
+        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(Integer.class, Integer.class, 3, true);
+        cache.put(1, 10);
+        cache.put(2, 20);
+        cache.put(3, 30);
+        cache.getOrDefault(1, 100);
         Iterator<Integer> keyIterator = cache.keySet().iterator();
         assertEquals(2, keyIterator.next());
         assertEquals(3, keyIterator.next());
