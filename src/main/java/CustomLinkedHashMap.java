@@ -128,7 +128,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return {@code true} if this map contains a mapping for the specified key
      */
     public boolean containsKey(final Object key) {
-        if(key == null || !this.key.isInstance(key))
+        if(!this.key.isInstance(key))
             return false;
         return map.containsKey(key);
     }
@@ -256,7 +256,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * or {@code null} if this map contains no mapping for the key
      */
     public V get(final Object key) {
-        if (key == null || !this.key.isInstance(key))
+        if (!this.key.isInstance(key))
             return null;
         Node<K, V> node = map.get(key);
         if(node == null)

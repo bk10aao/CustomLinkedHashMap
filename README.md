@@ -65,3 +65,23 @@ To test the project run command `./gradlew test`
 **Notes**:
 - **n**: Number of key-value mappings (entries) currently in the map.
 - **m**: Number of buckets (slots) in the underlying hash table.
+
+| Method              | Custom Avg (ns)      | Native Avg (ns)      | Multiplier | Faster Implementation |
+|:--------------------|:---------------------|:---------------------|:-----------|:----------------------|
+| `clear()`           | $1.23 \times 10^{5}$ | $1.31 \times 10^{5}$ | **x0.9**   | CustomLinkedHashMap   |
+| `containsKey(K)`    | $1.67 \times 10^{6}$ | $1.24 \times 10^{6}$ | **x1.3**   | Standard Library      |
+| `containsValue(V)`  | $4.87 \times 10^{9}$ | $4.82 \times 10^{9}$ | **x1.0**   | Standard Library      |
+| `entrySet()`        | $9.92 \times 10^{2}$ | $1.00 \times 10^{3}$ | **x1.0**   | CustomLinkedHashMap   |
+| `equals(Object o)`  | $1.36 \times 10^{6}$ | $1.01 \times 10^{6}$ | **x1.4**   | Standard Library      |
+| `get(K)`            | $1.56 \times 10^{6}$ | $1.24 \times 10^{6}$ | **x1.3**   | Standard Library      |
+| `getOrDefault(K,V)` | $1.50 \times 10^{6}$ | $1.33 \times 10^{6}$ | **x1.1**   | Standard Library      |
+| `keySet()`          | $4.49 \times 10^{4}$ | $3.01 \times 10^{4}$ | **x1.5**   | Standard Library      |
+| `put(K,V)`          | $3.78 \times 10^{6}$ | $3.77 \times 10^{6}$ | **x1.0**   | Standard Library      |
+| `putAll(Map)`       | $2.21 \times 10^{6}$ | $1.78 \times 10^{6}$ | **x1.2**   | Standard Library      |
+| `putIfAbsent(K,V)`  | $3.58 \times 10^{6}$ | $3.32 \times 10^{6}$ | **x1.1**   | Standard Library      |
+| `remove(K)`         | $2.01 \times 10^{6}$ | $1.65 \times 10^{6}$ | **x1.2**   | Standard Library      |
+| `remove(K,V)`       | $3.47 \times 10^{6}$ | $3.10 \times 10^{6}$ | **x1.1**   | Standard Library      |
+| `replace(K,V)`      | $3.66 \times 10^{6}$ | $2.90 \times 10^{6}$ | **x1.3**   | Standard Library      |
+| `replace(K,V,V)`    | $5.62 \times 10^{6}$ | $4.35 \times 10^{6}$ | **x1.3**   | Standard Library      |
+| `toString()`        | $3.62 \times 10^{6}$ | $2.50 \times 10^{6}$ | **x1.4**   | Standard Library      |
+| `values()`          | $3.52 \times 10^{4}$ | $9.31 \times 10^{3}$ | **x3.8**   | Standard Library      |
