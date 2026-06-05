@@ -85,3 +85,24 @@ To test the project run command `./gradlew test`
 | `replace(K,V,V)`    | $5.62 \times 10^{6}$ | $4.35 \times 10^{6}$ | **x1.3**   | Standard Library      |
 | `toString()`        | $3.62 \times 10^{6}$ | $2.50 \times 10^{6}$ | **x1.4**   | Standard Library      |
 | `values()`          | $3.52 \times 10^{4}$ | $9.31 \times 10^{3}$ | **x3.8**   | Standard Library      |
+
+# Performance Charts
+
+![clear().png](PerformanceCharts/clear%28%29.png)
+![containsKey(K).png](PerformanceCharts/containsKey%28K%29.png)
+![containsValue(V).png](PerformanceCharts/containsValue%28V%29.png)
+![entryset().png](PerformanceCharts/entryset%28%29.png)
+![equals(Object o).png](PerformanceCharts/equals%28Object%20o%29.png)
+![get(K).png](PerformanceCharts/get%28K%29.png)
+![getOrDefault(K,V).png](PerformanceCharts/getOrDefault%28K%2CV%29.png)
+![keySet().png](PerformanceCharts/keySet%28%29.png)
+![put(K,V).png](PerformanceCharts/put%28K%2CV%29.png)
+![putAll(Map).png](PerformanceCharts/putAll%28Map%29.png)
+![putIfAbsent(K,V).png](PerformanceCharts/putIfAbsent%28K%2CV%29.png)
+![remove(K).png](PerformanceCharts/remove%28K%29.png)
+![remove(K,V).png](PerformanceCharts/remove%28K%2CV%29.png)
+![replace(K,V).png](PerformanceCharts/replace%28K%2CV%29.png)
+![replace(K,V,V).png](PerformanceCharts/replace%28K%2CV%2CV%29.png)
+![toString().png](PerformanceCharts/toString%28%29.png)
+![values().png](PerformanceCharts/values%28%29.png)
+
