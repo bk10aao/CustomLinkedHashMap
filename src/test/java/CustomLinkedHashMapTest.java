@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -26,7 +27,7 @@ public class CustomLinkedHashMapTest {
     @Test
     public void createMap_onPutKeyOf_null_throws_NullPointerException() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        assertThrows(IllegalArgumentException.class, ()-> map.put(null, 1));
+        assertThrows(NullPointerException.class, ()-> map.put(null, 1));
     }
 
     @Test
@@ -152,7 +153,7 @@ public class CustomLinkedHashMapTest {
     }
 
     @Test
-    public void givenMap_onPutIfAbsent_withNullKey_throws_NullPointerException() {
+    public void givenMap_onPutIfAbsent_withNullKey_throws_NullPonterException() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
         assertThrows(NullPointerException.class, () -> map.putIfAbsent(null, 123));
     }
@@ -313,6 +314,8 @@ public class CustomLinkedHashMapTest {
     public void createTwoNonEqualMap_onEquals_returns_false() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
         CustomLinkedHashMap<Integer, Integer> mapTwo = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        map.put("One", 1);
+        mapTwo.put(1, 1);
         assertNotEquals(map, mapTwo);
     }
 
@@ -486,15 +489,13 @@ public class CustomLinkedHashMapTest {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
         for(int i = 0; i < 10; i++)
             map.put(i, i * 10);
-
         Collection<Integer> expectedValues = new ArrayList<>();
         for(int i = 0; i < 10; i++)
             expectedValues.add(i * 10);
-
-        Collection<?> values = map.values();
+        Collection<Integer> values = map.values();
         assertEquals(10, values.size());
         assertEquals(10, expectedValues.size());
-        assertEquals(expectedValues, values);
+        assertArrayEquals(expectedValues.toArray(), values.toArray());
     }
 
     @Test

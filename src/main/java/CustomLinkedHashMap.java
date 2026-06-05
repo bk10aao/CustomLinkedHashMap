@@ -1,10 +1,11 @@
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 
@@ -15,9 +16,8 @@ import static java.util.Objects.requireNonNull;
  * utilizing an underlying {@link java.util.HashMap} for storage and lookups while maintaining
  * insertion or access order via an internal doubly-linked list.
  * <p>
- * This map prohibits {@code null} keys and strictly enforces runtime type constraints on both
- * keys and values using provided {@link Class} type tokens. Null values are permitted in some
- * operations (e.g., {@link #put(Object, Object)}) but forbidden in others (e.g., {@link #replace(Object, Object)}).
+ * This map prohibits both {@code null} keys and {@code null} values, strictly enforcing runtime
+ * type constraints on both using provided {@link Class} type tokens.
  * To prevent expensive rehashing, the initial capacity of the backing map is calculated dynamically at
  * construction based on the specified maximum entries and load factor.
  * <p>
@@ -128,7 +128,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return {@code true} if this map contains a mapping for the specified key
      */
     public boolean containsKey(final Object key) {
-        if(!this.key.isInstance(key))
+        if(key == null || !this.key.isInstance(key))
             return false;
         return map.containsKey(key);
     }
@@ -229,9 +229,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             return false;
         if(size() != otherMap.size())
             return false;
-        if(o instanceof CustomLinkedHashMap<?, ?> otherCustom)
-            if(!Objects.equals(this.key, otherCustom.key) || !Objects.equals(this.value, otherCustom.value))
-                return false;
         for(Map.Entry<K, V> entry : entrySet()) {
             K key = entry.getKey();
             V value = entry.getValue();
@@ -248,20 +245,18 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * Returns the value to which the specified key is mapped, or {@code null}
      * if this map contains no mapping for the key.
      * <p>
-     * This implementation enforces that the search key is non-null. It then verifies
-     * if the provided key is an instance of the configured key class token; if not,
-     * it immediately returns {@code null}. If an entry is found and this map was
-     * configured with {@code accessOrder = true}, the underlying structural node
+     * If the provided key is null or not an instance of the configured key class token,
+     * this implementation gracefully returns {@code null} to guarantee compatibility
+     * with symmetric mixed map collections validations. If an entry is found and this
+     * map was configured with {@code accessOrder = true}, the underlying structural node
      * is moved to the tail of the doubly-linked list to track recent access.
      *
-     * @param key the key whose associated value is to be returned
+     * @param key the key whose associated value is to be returned (can be null)
      * @return the value to which the specified key is mapped,
-     *          or {@code null} if this map contains no mapping for the key
-     * @throws NullPointerException if the specified key is null
+     * or {@code null} if this map contains no mapping for the key
      */
     public V get(final Object key) {
-        requireNonNull(key);
-        if(!this.key.isInstance(key))
+        if (key == null || !this.key.isInstance(key))
             return null;
         Node<K, V> node = map.get(key);
         if(node == null)
@@ -275,16 +270,15 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * Returns the value to which the specified key is mapped, or the provided
      * {@code defaultValue} if this map contains no mapping for the key.
      * <p>
-     * This implementation enforces that the search key is non-null. It then checks
-     * if the provided key is an instance of the configured key class token; if not,
-     * it immediately returns the fallback {@code defaultValue}. If a valid mapping is
-     * located and this map is configured for access-ordering, the accessed node is
+     * If the provided key is not an instance of the configured key class token,
+     * this implementation gracefully returns the fallback {@code defaultValue}. If a valid
+     * mapping is located and this map is configured for access-ordering, the accessed node is
      * relocated to the tail of the internal doubly-linked list.
      *
      * @param key the key whose associated value is to be returned
      * @param defaultValue the fallback value to return if the key is absent or type-incompatible
      * @return the value to which the specified key is mapped, or {@code defaultValue}
-     *          if this map contains no mapping for the key
+     * if this map contains no mapping for the key
      * @throws NullPointerException if the specified key is null
      */
     public V getOrDefault(final Object key, final V defaultValue) {
@@ -386,7 +380,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for the key, the old value is replaced.
      * <p>
-     * This implementation strictly enforces that the inserted key cannot be null.
+     * This implementation strictly enforces that the inserted key and value cannot be null,
+     * throwing a {@link NullPointerException} if either parameter is missing.
      * It performs explicit runtime type validation against both the key and value
      * class tokens, throwing a {@link ClassCastException} if a type mismatch is detected.
      * <p>
@@ -400,14 +395,14 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      * @return the previous value associated with {@code key}, or {@code null} if there was no mapping for {@code key}
-     * @throws IllegalArgumentException if the specified key is null
+     * @throws NullPointerException if the specified key or value is null
      * @throws ClassCastException if the key or value runtime types are incompatible
      * with this map's defined tokens
      */
     public V put(final K key, final V value) {
-        if(key == null)
-            throw new IllegalArgumentException();
-        if(!this.key.isInstance(key) || value != null && !this.value.isInstance(value))
+        requireNonNull(key);
+        requireNonNull(value);
+        if(!this.key.isInstance(key) || !this.value.isInstance(value))
             throw new ClassCastException();
         Node<K, V> node = map.get(key);
         if(node != null) {
@@ -426,8 +421,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             node.prev = tail;
             tail = node;
         }
-        if(removeEldestEntry(head))
-            remove(head.key);
+        if(removeEldestEntry(head)) {
+            Node<K, V> eldest = head;
+            map.remove(eldest.key);
+            unlink(eldest);
+        }
         return null;
     }
 
@@ -443,7 +441,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * eviction checks are consistently executed for every imported entry.
      *
      * @param m mappings to be stored in this map
-     * @throws NullPointerException if the specified map is null
+     * @throws NullPointerException if the specified map is null, or if any key or value in the specified map is null
      * @throws IllegalArgumentException if any key in the specified map is null
      * @throws ClassCastException if a key or value type in the specified map is incompatible with this map's defined tokens
      */
@@ -461,75 +459,84 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * This implementation strictly enforces that both the input key and value are
      * non-null, throwing a {@link NullPointerException} if either parameter is missing.
      * If a valid mapping already exists for the key, its current value is immediately
-     * returned without modifying the map. If no mapping exists, the key-value pair is
-     * passed to {@link #put(Object, Object)}, where runtime type-token verification,
-     * double-linked list positioning, and eldest-entry eviction are handled.
+     * returned without modifying the map. If no mapping exists, the node is inserted
+     * directly into the backing map and tracked at the tail of the iteration order list.
+     * If inserting this element triggers the map's capacity policy eviction check, the
+     * eldest entry at the head of the list is cleanly removed in constant time.
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      * @return the previous value associated with the specified key, or {@code null}
      * if there was no mapping for the key
      * @throws NullPointerException if the specified key or value is null
-     * @throws ClassCastException if the key or value runtime types are incompatible with this map's defined tokens
+     * @throws ClassCastException if the key or value runtime types are incompatible
+     * with this map's defined tokens
      */
     public V putIfAbsent(final K key, final V value) {
         requireNonNull(key);
         requireNonNull(value);
+        if(!this.key.isInstance(key) || !this.value.isInstance(value))
+            throw new ClassCastException();
+
         Node<K, V> node = map.get(key);
         if(node != null)
             return node.value;
-        put(key, value);
+
+        node = new Node<>(key, value);
+        map.put(key, node);
+        if(tail == null) {
+            head = tail = node;
+        } else {
+            tail.next = node;
+            node.prev = tail;
+            tail = node;
+        }
+
+        if(removeEldestEntry(head)) {
+            Node<K, V> eldest = head;
+            map.remove(eldest.key);
+            unlink(eldest);
+        }
         return null;
     }
 
     /**
      * Removes the mapping for the specified key from this map if present.
      * <p>
-     * This implementation enforces that the search key is non-null. If a matching
-     * entry is located, it is removed from the backing lookup map. The underlying
-     * node is then structurally unlinked from the internal doubly-linked list by
-     * dynamically adjusting neighboring pointers (updating {@code head} or {@code tail}
-     * references where appropriate) and clearing the node's individual layout links
-     * to prevent memory retention.
+     * This implementation enforces that the search key is non-null, throwing a
+     * {@link NullPointerException} if it is missing. It also verifies that the type of the key
+     * matches the configured key class token, throwing a {@link ClassCastException} upon mismatch.
+     * If a matching entry is located, it is removed from the backing lookup map and structurally
+     * unlinked from the internal doubly-linked list.
      *
      * @param key key whose mapping is to be removed from the map
      * @return the previous value associated with {@code key}, or {@code null} if there was no mapping for {@code key}
      * @throws NullPointerException if the specified key is null
+     * @throws ClassCastException if the key type is incompatible with this map's defined tokens
      */
     public V remove(final Object key) {
         requireNonNull(key);
+        if (!this.key.isInstance(key))
+            throw new ClassCastException();
         Node<K, V> node = map.remove(key);
-        if(node == null)
+        if (node == null)
             return null;
-        V value = node.value;
-        if(node.prev != null)
-            node.prev.next = node.next;
-        else
-            head = node.next;
-        if(node.next != null)
-            node.next.prev = node.prev;
-        else
-            tail = node.prev;
-        node.prev = null;
-        node.next = null;
-        return value;
+        V val = node.value;
+        unlink(node);
+        return val;
     }
 
     /**
      * Removes the entry for the specified key only if it is currently mapped to
      * the specified value.
      * <p>
-     * This implementation strictly enforces that both the input key and value are
-     * non-null, throwing a {@link NullPointerException} if either parameter is missing.
-     * If the key exists in the map and its currently associated value matches the
-     * provided value (tested via {@link Objects#equals(Object, Object)}), the entry is
-     * passed to {@link #remove(Object)} to be structurally unlinked from both the
-     * backing map and the doubly-linked list.
+     * This implementation verifies parameters leniently; if either the key or value is
+     * {@code null}, or if their runtime classes are incompatible with this map's defined tokens,
+     * it immediately returns {@code false} without modifying the map or throwing an exception.
      *
      * @param key key with which the specified value is associated
      * @param value value expected to be associated with the specified key
      * @return {@code true} if the value was removed, {@code false} otherwise
-     * @throws NullPointerException if the specified key or value is null
      */
     public boolean remove(final Object key, final Object value) {
         requireNonNull(key);
@@ -564,21 +571,20 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * Replaces the entry for the specified key only if it is currently mapped to
      * some value.
      * <p>
-     * This implementation strictly enforces that both the input key and value are
-     * non-null, throwing a {@link NullPointerException} if either parameter is missing.
-     * It also performs explicit runtime type validation against both the key and value
-     * class tokens, throwing a {@link ClassCastException} if a type mismatch is detected.
-     * If a matching mapping is located in the map, its value is updated to the new
-     * specified value, and the previous value is returned. If the key is not present,
-     * the map remains unmodified and {@code null} is returned.
+     * This implementation performs explicit runtime type validation against both the key and value
+     * class tokens using {@link Class#isInstance(Object)}, throwing a {@link ClassCastException}
+     * if a type mismatch is detected. Because a {@code null} reference is not an instance of any
+     * class, passing a {@code null} key or value will also result in a {@link ClassCastException}.
+     * If a matching mapping is located in the map, its value is updated to the new specified value,
+     * and the previous value is returned. If the key is not present, the map remains unmodified
+     * and {@code null} is returned.
      *
      * @param key key with which the specified value is associated
      * @param value value to be associated with the specified key
      * @return the previous value associated with the specified key, or {@code null}
      * if there was no mapping for the key
-     * @throws NullPointerException if the specified key or value is null
-     * @throws ClassCastException if the key or value runtime types are incompatible
-     * with this map's defined tokens
+     * @throws ClassCastException if the key or value runtime types are incompatible with this map's defined tokens,
+     * or if either parameter is null with this map's defined tokens, or if either parameter is null
      */
     public V replace(final K key, final V value) {
         requireNonNull(key);
@@ -592,6 +598,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             return null;
         V old = node.value;
         node.value = value;
+        if(accessOrder)
+            moveToTail(node);
         return old;
     }
 
@@ -622,33 +630,38 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         requireNonNull(key);
         requireNonNull(oldValue);
         requireNonNull(newValue);
-        if(!this.key.isInstance(key))
-            throw new ClassCastException();
-        if(!this.value.isInstance(oldValue))
-            throw new ClassCastException();
-        if(!this.value.isInstance(newValue))
+        if(!this.key.isInstance(key) || !this.value.isInstance(oldValue) || !this.value.isInstance(newValue))
             throw new ClassCastException();
         Node<K, V> node = map.get(key);
         if(node == null)
             return false;
         if(node.value.equals(oldValue)) {
             node.setValue(newValue);
+            if(accessOrder)
+                moveToTail(node);
             return true;
         }
         return false;
-    }
-
-    public int size() {
-        return map.size();
     }
 
     /**
      * Returns the number of key-value mappings in this map.
      * <p>
      * This implementation delegates directly to the underlying backing map
-     * to retrieve the structural entry count in $O(1)$ constant time.
+     * to retrieve the structural entry count in O(1) constant time.
      *
      * @return the number of key-value mappings in this map
+     */
+    public int size() {
+        return map.size();
+    }
+
+    /**
+     * Returns a string representation of this map layout containing comma-separated
+     * entries wrapped inside curly braces, following the sequential order
+     * dictated by the internal doubly-linked list.
+     *
+     * @return a string representation of this map structure
      */
     @Override
     public String toString() {
@@ -666,27 +679,51 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     }
 
     /**
-     * Returns a {@link Collection} view of the values contained in this map.
+     * Returns a dynamic {@link Collection} view of the values contained in this map.
      * <p>
-     * Unlike standard map implementations where the collection is backed by the map,
-     * this implementation returns a snapshot copy stored in a new {@link ArrayList}.
-     * If the map is empty, an empty list is immediately returned. Otherwise, the
-     * method performs a sequential traversal from the {@code head} node to the
-     * {@code tail} node, copying each entry's value into the collection in the
-     * map's defined iteration order.
+     * The collection is backed directly by the map layout, so additions, deletions,
+     * and sequence mutations made to the backing map will instantly update the visibility
+     * boundaries of this view layer.
      *
      * @return a collection view of the values contained in this map
      */
     public Collection<V> values() {
-        Collection<V> values = new ArrayList<>();
-        if(isEmpty())
-            return values;
-        Node<K, V> current = head;
-        while(current != null) {
-            values.add(current.value);
-            current = current.next;
-        }
-        return values;
+        return new AbstractCollection<>() {
+            @Override
+            public int size() {
+                return CustomLinkedHashMap.this.size();
+            }
+
+            @Override
+            public Iterator<V> iterator() {
+                return new Iterator<>() {
+                    private Node<K, V> current = head;
+                    private Node<K, V> lastReturned = null;
+
+                    @Override
+                    public boolean hasNext() {
+                        return current != null;
+                    }
+
+                    @Override
+                    public V next() {
+                        if (!hasNext())
+                            throw new NoSuchElementException();
+                        lastReturned = current;
+                        current = current.next;
+                        return lastReturned.value;
+                    }
+
+                    @Override
+                    public void remove() {
+                        if (lastReturned == null)
+                            throw new IllegalStateException();
+                        CustomLinkedHashMap.this.remove(lastReturned.key);
+                        lastReturned = null;
+                    }
+                };
+            }
+        };
     }
 
     /**
@@ -721,7 +758,13 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         this.value = value;
         this.maxEntries = maxEntries;
         this.accessOrder = accessOrder;
-        int initialCapacity = (maxEntries == Integer.MAX_VALUE) ? 16 : (int) Math.ceil(maxEntries / loadFactor) + 1;
+        int initialCapacity;
+        if (maxEntries == Integer.MAX_VALUE)
+            initialCapacity = 16;
+        else {
+            long calculated = (long) Math.ceil(maxEntries / (double) loadFactor) + 1;
+            initialCapacity = (calculated > (1 << 30)) ? (1 << 30) : (int) calculated;
+        }
         this.map = new HashMap<>(initialCapacity, loadFactor);
     }
 
@@ -734,14 +777,30 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             head = node.next;
         if(node.next != null)
             node.next.prev = node.prev;
+        else
+            tail = node.prev;
         node.prev = tail;
         node.next = null;
-        if(tail == null)
-            head = tail = node;
-        else {
+        if(tail != null)
             tail.next = node;
-            tail = node;
-        }
+        tail = node;
+        if(head == null)
+            head = node;
+    }
+
+    private void unlink(Node<K, V> node) {
+        if (node.prev != null)
+            node.prev.next = node.next;
+        else
+            head = node.next;
+
+        if (node.next != null)
+            node.next.prev = node.prev;
+        else
+            tail = node.prev;
+
+        node.prev = null;
+        node.next = null;
     }
 
     /**
@@ -776,6 +835,15 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             this.value = value;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if(o == this)
+                return true;
+            if(o instanceof Map.Entry<?,?> e)
+                return Objects.equals(key, e.getKey()) && Objects.equals(value, e.getValue());
+            return false;
+        }
+
         /**
          * Returns the key corresponding to this entry.
          *
@@ -796,16 +864,22 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             return value;
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(key) ^ Objects.hashCode(value);
+        }
+
         /**
          * Replaces the value corresponding to this entry with the specified value.
          *
          * @param newValue new value to be stored in this entry
          * @return the old value corresponding to the entry
+         * @throws NullPointerException if the specified new value is null
          */
         @Override
         public V setValue(V newValue) {
             V old = value;
-            value = newValue;
+            this.value = requireNonNull(newValue);
             return old;
         }
 
