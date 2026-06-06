@@ -91,7 +91,7 @@ To test the project run command `./gradlew test`
 ![clear().png](PerformanceCharts/clear%28%29.png)
 ![containsKey(K).png](PerformanceCharts/containsKey%28K%29.png)
 ![containsValue(V).png](PerformanceCharts/containsValue%28V%29.png)
-![entryset().png](PerformanceCharts/entryset%28%29.png)
+![entryset().png](PerformanceCharts/entrySet%28%29.png)
 ![equals(Object o).png](PerformanceCharts/equals%28Object%20o%29.png)
 ![get(K).png](PerformanceCharts/get%28K%29.png)
 ![getOrDefault(K,V).png](PerformanceCharts/getOrDefault%28K%2CV%29.png)
