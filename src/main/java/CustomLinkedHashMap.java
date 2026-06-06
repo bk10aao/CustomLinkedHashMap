@@ -44,6 +44,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     private transient Node<K, V> head;
     private transient Node<K, V> tail;
 
+    private transient Object computeScratchpad;
+
     private final boolean accessOrder;
 
     private final Class<K> key;
@@ -114,8 +116,15 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * pointers of the internal doubly-linked list will be unlinked.
      */
     public void clear() {
-        head = tail = null;
         map.clear();
+        Node<K, V> current = head;
+        while (current != null) {
+            Node<K, V> next = current.next;
+            current.prev = null;
+            current.next = null;
+            current = next;
+        }
+        head = tail = null;
     }
 
     /**
@@ -128,7 +137,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return {@code true} if this map contains a mapping for the specified key
      */
     public boolean containsKey(final Object key) {
-        if(!this.key.isInstance(key))
+        if (key == null || !this.key.isInstance(key))
             return false;
         return map.containsKey(key);
     }
@@ -144,7 +153,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return {@code true} if this map maps one or more keys to the specified value
      */
     public boolean containsValue(final Object value) {
-        if(!this.value.isInstance(value))
+        if (value == null || !this.value.isInstance(value))
             return false;
         Node<K, V> current = head;
         while(current != null) {
@@ -232,10 +241,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         for(Map.Entry<K, V> entry : entrySet()) {
             K key = entry.getKey();
             V value = entry.getValue();
-            if(!otherMap.containsKey(key))
-                return false;
             Object otherValue = otherMap.get(key);
-            if(!Objects.equals(value, otherValue))
+            if (!Objects.equals(value, otherValue))
                 return false;
         }
         return true;
@@ -256,8 +263,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * or {@code null} if this map contains no mapping for the key
      */
     public V get(final Object key) {
-        if (!this.key.isInstance(key))
-            return null;
         Node<K, V> node = map.get(key);
         if(node == null)
             return null;
@@ -402,31 +407,44 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public V put(final K key, final V value) {
         requireNonNull(key);
         requireNonNull(value);
-        if(!this.key.isInstance(key) || !this.value.isInstance(value))
-            throw new ClassCastException();
-        Node<K, V> node = map.get(key);
-        if(node != null) {
-            V previousValue = node.value;
-            node.value = value;
-            if(accessOrder)
-                moveToTail(node);
-            return previousValue;
-        }
-        node = new Node<>(key, value);
-        map.put(key, node);
-        if(tail == null)
-            head = tail = node;
-        else {
-            tail.next = node;
-            node.prev = tail;
-            tail = node;
-        }
-        if(removeEldestEntry(head)) {
+        validateTypes(key, value);
+        map.compute(key, (k, existingNode) -> {
+            if(existingNode != null) {
+                this.computeScratchpad = existingNode.value;
+                existingNode.value = value;
+                if(accessOrder)
+                    moveToTail(existingNode);
+                return existingNode;
+            } else {
+                this.computeScratchpad = null;
+                Node<K, V> newNode = new Node<>(key, value);
+                if(tail == null)
+                    head = tail = newNode;
+                else {
+                    tail.next = newNode;
+                    newNode.prev = tail;
+                    tail = newNode;
+                }
+                return newNode;
+            }
+        });
+        V oldValue = (V) this.computeScratchpad;
+        this.computeScratchpad = null;
+        if(oldValue == null && removeEldestEntry(head)) {
             Node<K, V> eldest = head;
             map.remove(eldest.key);
             unlink(eldest);
         }
-        return null;
+        return oldValue;
+    }
+
+    private void validateTypes(final K key, final V value) {
+        if(!this.key.isInstance(key) || !this.value.isInstance(value))
+            throwClassCastException();
+    }
+
+    private void throwClassCastException() {
+        throw new ClassCastException("Incompatible key or value type token validation failed.");
     }
 
     /**
@@ -475,29 +493,36 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public V putIfAbsent(final K key, final V value) {
         requireNonNull(key);
         requireNonNull(value);
-        if(!this.key.isInstance(key) || !this.value.isInstance(value))
-            throw new ClassCastException();
+        validateTypes(key, value);
+        map.compute(key, (k, existingNode) -> {
+            if (existingNode != null) {
+                this.computeScratchpad = existingNode.value;
+                if (accessOrder)
+                    moveToTail(existingNode);
+                return existingNode;
+            } else {
+                this.computeScratchpad = null;
+                Node<K, V> newNode = new Node<>(k, value);
+                if (tail == null) {
+                    head = tail = newNode;
+                } else {
+                    tail.next = newNode;
+                    newNode.prev = tail;
+                    tail = newNode;
+                }
+                return newNode;
+            }
+        });
 
-        Node<K, V> node = map.get(key);
-        if(node != null)
-            return node.value;
+        V oldValue = (V) this.computeScratchpad;
+        this.computeScratchpad = null;
 
-        node = new Node<>(key, value);
-        map.put(key, node);
-        if(tail == null) {
-            head = tail = node;
-        } else {
-            tail.next = node;
-            node.prev = tail;
-            tail = node;
-        }
-
-        if(removeEldestEntry(head)) {
+        if (oldValue == null && removeEldestEntry(head)) {
             Node<K, V> eldest = head;
             map.remove(eldest.key);
             unlink(eldest);
         }
-        return null;
+        return oldValue;
     }
 
     /**
@@ -517,7 +542,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public V remove(final Object key) {
         requireNonNull(key);
         if (!this.key.isInstance(key))
-            throw new ClassCastException();
+            throwClassCastException();
         Node<K, V> node = map.remove(key);
         if (node == null)
             return null;
@@ -541,11 +566,21 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public boolean remove(final Object key, final Object value) {
         requireNonNull(key);
         requireNonNull(value);
-        Node<K, V> node = map.get(key);
-        if(node == null || !Objects.equals(node.value, value))
-            return false;
-        remove(key);
-        return true;
+        this.computeScratchpad = null;
+        map.compute((K) key, (k, existingNode) -> {
+            if (existingNode != null && Objects.equals(existingNode.value, value)) {
+                this.computeScratchpad = existingNode;
+                return null;
+            }
+            return existingNode;
+        });
+        Object result = this.computeScratchpad;
+        this.computeScratchpad = null;
+        if (result instanceof Node) {
+            unlink((Node<K, V>) result);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -589,10 +624,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public V replace(final K key, final V value) {
         requireNonNull(key);
         requireNonNull(value);
-        if(!this.key.isInstance(key))
-            throw new ClassCastException();
-        if(!this.value.isInstance(value))
-            throw new ClassCastException();
+        validateTypes(key, value);
         Node<K, V> node = map.get(key);
         if(node == null)
             return null;
@@ -630,8 +662,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         requireNonNull(key);
         requireNonNull(oldValue);
         requireNonNull(newValue);
-        if(!this.key.isInstance(key) || !this.value.isInstance(oldValue) || !this.value.isInstance(newValue))
-            throw new ClassCastException();
+        validateTypes(key, newValue);
+        if(!this.value.isInstance(oldValue))
+            throwClassCastException();
         Node<K, V> node = map.get(key);
         if(node == null)
             return false;

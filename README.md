@@ -12,97 +12,98 @@ To test the project run command `./gradlew test`
 
 # Time Complexity
 
-| Method                       | CustomLinkedHashMap                           | LinkedHashMap (JDK)                     | Winner |
-|------------------------------|-----------------------------------------------|-----------------------------------------|--------|
-| **clear()**                  | O(n)                                          | O(n)                                    | Tie    |
-| **containsKey(Object)**      | O(1) average                                  | O(1) average                            | Tie    |
-| **containsValue(Object)**    | O(n)                                          | O(n)                                    | Tie    |
-| **entrySet()**               | O(1) view creation, O(n) iteration            | O(1) view creation, O(n) iteration      | Tie    |
-| **equals(Object)**           | O(n)                                          | O(n)                                    | Tie    |
-| **get(Object)**              | O(1) average (O(1) moveToTail if accessOrder) | O(1) average (O(1) move if accessOrder) | Tie    |
-| **getOrDefault(Object, V)**  | O(1) average (O(1) moveToTail if accessOrder) | O(1) average                            | Tie    |
-| **hashCode()**               | O(n)                                          | O(n)                                    | Tie    |
-| **isEmpty()**                | O(1)                                          | O(1)                                    | Tie    |
-| **keySet()**                 | O(1) view creation, O(n) iteration            | O(1) view creation, O(n) iteration      | Tie    |
-| **put(K, V)**                | O(1) average (O(1) eviction possible)         | O(1) average                            | Tie    |
-| **putAll(Map)**              | O(m) average (m = input size)                 | O(m) average                            | Tie    |
-| **putIfAbsent(K, V)**        | O(1) average (O(1) eviction possible)         | O(1) average                            | Tie    |
-| **remove(Object)**           | O(1) average                                  | O(1) average                            | Tie    |
-| **remove(Object, Object)**   | O(1) average                                  | O(1) average                            | Tie    |
-| **removeEldestEntry(Entry)** | O(1)                                          | O(1)                                    | Tie    |
-| **replace(K, V)**            | O(1) average (O(1) moveToTail if accessOrder) | O(1) average                            | Tie    |
-| **replace(K, V, V)**         | O(1) average (O(1) moveToTail if accessOrder) | O(1) average                            | Tie    |
-| **size()**                   | O(1)                                          | O(1)                                    | Tie    |
-| **toString()**               | O(n)                                          | O(n)                                    | Tie    |
-| **values()**                 | O(1) view creation, O(n) iteration            | O(1) view creation, O(n) iteration      | Tie    |
+| Method                       |  CustomLinkedHashMap  |  LinkedHashMap (JDK)  | Winner |
+|------------------------------|:---------------------:|:---------------------:|:------:|
+| **clear()**                  |         O(n)          |         O(n)          |  Tie   |
+| **containsKey(Object)**      |         O(1)          |         O(1)          |  Tie   |
+| **containsValue(Object)**    |         O(n)          |         O(n)          |  Tie   |
+| **entrySet()**               |         O(1)          |         O(1)          |  Tie   |
+| **equals(Object)**           |         O(n)          |         O(n)          |  Tie   |
+| **get(Object)**              |         O(1)          |         O(1)          |  Tie   |
+| **getOrDefault(Object, V)**  |         O(1)          |         O(1)          |  Tie   |
+| **hashCode()**               |         O(n)          |         O(n)          |  Tie   |
+| **isEmpty()**                |         O(1)          |         O(1)          |  Tie   |
+| **keySet()**                 |         O(1)          |         O(1)          |  Tie   |
+| **put(K, V)**                |         O(1)          |         O(1)          |  Tie   |
+| **putAll(Map)**              |         O(m)          |         O(m)          |  Tie   |
+| **putIfAbsent(K, V)**        |         O(1)          |         O(1)          |  Tie   |
+| **remove(Object)**           |         O(1)          |         O(1)          |  Tie   |
+| **remove(Object, Object)**   |         O(1)          |         O(1)          |  Tie   |
+| **removeEldestEntry(Entry)** |         O(1)          |         O(1)          |  Tie   |
+| **replace(K, V)**            |         O(1)          |         O(1)          |  Tie   |
+| **replace(K, V, V)**         |         O(1)          |         O(1)          |  Tie   |
+| **size()**                   |         O(1)          |         O(1)          |  Tie   |
+| **toString()**               |         O(n)          |         O(n)          |  Tie   |
+| **values()**                 |         O(1)          |         O(1)          |  Tie   |
 
 # Space Complexity
 
-| Method / Aspect              | CustomLinkedHashMap             | LinkedHashMap (JDK)   | Winner |
-|------------------------------|---------------------------------|-----------------------|--------|
-| **clear()**                  | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **containsKey(Object)**      | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **containsValue(Object)**    | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **entrySet()**               | O(1) auxiliary (view)           | O(1) auxiliary (view) | Tie    |
-| **equals(Object)**           | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **get(Object)**              | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **getOrDefault(Object, V)**  | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **hashCode()**               | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **isEmpty()**                | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **keySet()**                 | O(1) auxiliary (view)           | O(1) auxiliary (view) | Tie    |
-| **put(K, V)**                | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **putAll(Map)**              | O(m) auxiliary (m = input size) | O(m) auxiliary        | Tie    |
-| **putIfAbsent(K, V)**        | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **remove(Object)**           | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **remove(Object, Object)**   | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **removeEldestEntry(Entry)** | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **replace(K, V)**            | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **replace(K, V, V)**         | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **size()**                   | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **toString()**               | O(1) auxiliary                  | O(1) auxiliary        | Tie    |
-| **values()**                 | O(1) auxiliary (view)           | O(1) auxiliary (view) | Tie    |
+| Method                       | CustomLinkedHashMap | LinkedHashMap (JDK) | Winner |
+|------------------------------|:-------------------:|:-------------------:|:------:|
+| **clear()**                  |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **containsKey(Object)**      |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **containsValue(Object)**    |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **entrySet()**               |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **equals(Object)**           |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **get(Object)**              |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **getOrDefault(Object, V)**  |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **hashCode()**               |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **isEmpty()**                |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **keySet()**                 |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **put(K, V)**                |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **putAll(Map)**              |   O(m) auxiliary    |   O(m) auxiliary    |  Tie   |
+| **putIfAbsent(K, V)**        |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **remove(Object)**           |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **remove(Object, Object)**   |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **removeEldestEntry(Entry)** |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **replace(K, V)**            |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **replace(K, V, V)**         |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **size()**                   |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **toString()**               |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
+| **values()**                 |   O(1) auxiliary    |   O(1) auxiliary    |  Tie   |
 
 **Notes**:
-- **n**: Number of key-value mappings (entries) currently in the map.
-- **m**: Number of buckets (slots) in the underlying hash table.
+- **n**: Total number of key-value mappings currently in the map.
+- **m**: Number of key-value mappings in the input map.
 
-| Method              | Custom Avg (ns)      | Native Avg (ns)      | Multiplier | Faster Implementation |
-|:--------------------|:---------------------|:---------------------|:-----------|:----------------------|
-| `clear()`           | $1.23 \times 10^{5}$ | $1.31 \times 10^{5}$ | **x0.9**   | CustomLinkedHashMap   |
-| `containsKey(K)`    | $1.67 \times 10^{6}$ | $1.24 \times 10^{6}$ | **x1.3**   | Standard Library      |
-| `containsValue(V)`  | $4.87 \times 10^{9}$ | $4.82 \times 10^{9}$ | **x1.0**   | Standard Library      |
-| `entrySet()`        | $9.92 \times 10^{2}$ | $1.00 \times 10^{3}$ | **x1.0**   | CustomLinkedHashMap   |
-| `equals(Object o)`  | $1.36 \times 10^{6}$ | $1.01 \times 10^{6}$ | **x1.4**   | Standard Library      |
-| `get(K)`            | $1.56 \times 10^{6}$ | $1.24 \times 10^{6}$ | **x1.3**   | Standard Library      |
-| `getOrDefault(K,V)` | $1.50 \times 10^{6}$ | $1.33 \times 10^{6}$ | **x1.1**   | Standard Library      |
-| `keySet()`          | $4.49 \times 10^{4}$ | $3.01 \times 10^{4}$ | **x1.5**   | Standard Library      |
-| `put(K,V)`          | $3.78 \times 10^{6}$ | $3.77 \times 10^{6}$ | **x1.0**   | Standard Library      |
-| `putAll(Map)`       | $2.21 \times 10^{6}$ | $1.78 \times 10^{6}$ | **x1.2**   | Standard Library      |
-| `putIfAbsent(K,V)`  | $3.58 \times 10^{6}$ | $3.32 \times 10^{6}$ | **x1.1**   | Standard Library      |
-| `remove(K)`         | $2.01 \times 10^{6}$ | $1.65 \times 10^{6}$ | **x1.2**   | Standard Library      |
-| `remove(K,V)`       | $3.47 \times 10^{6}$ | $3.10 \times 10^{6}$ | **x1.1**   | Standard Library      |
-| `replace(K,V)`      | $3.66 \times 10^{6}$ | $2.90 \times 10^{6}$ | **x1.3**   | Standard Library      |
-| `replace(K,V,V)`    | $5.62 \times 10^{6}$ | $4.35 \times 10^{6}$ | **x1.3**   | Standard Library      |
-| `toString()`        | $3.62 \times 10^{6}$ | $2.50 \times 10^{6}$ | **x1.4**   | Standard Library      |
-| `values()`          | $3.52 \times 10^{4}$ | $9.31 \times 10^{3}$ | **x3.8**   | Standard Library      |
+|  Method             |    CustomLinkedHashMap (ns)    |    LinkedHashMap (ns)    | Multiplier  | Faster Implementation  |
+|---------------------|:------------------------------:|:------------------------:|:-----------:|:----------------------:|
+| `clear()`           |      $1.42 \times 10^{6}$      |   $1.23 \times 10^{5}$   |  **x11.6**  |    Standard Library    |
+| `containsKey(K)`    |      $1.63 \times 10^{6}$      |   $1.13 \times 10^{6}$   |  **x1.4**   |    Standard Library    |
+| `containsValue(V)`  |      $5.46 \times 10^{9}$      |   $4.84 \times 10^{9}$   |  **x1.1**   |    Standard Library    |
+| `entrySet()`        |      $1.01 \times 10^{3}$      |   $8.29 \times 10^{2}$   |  **x1.2**   |    Standard Library    |
+| `equals(Object o)`  |      $1.11 \times 10^{6}$      |   $9.53 \times 10^{5}$   |  **x1.2**   |    Standard Library    |
+| `get(K)`            |      $1.51 \times 10^{6}$      |   $1.35 \times 10^{6}$   |  **x1.1**   |    Standard Library    |
+| `getOrDefault(K,V)` |      $1.55 \times 10^{6}$      |   $1.31 \times 10^{6}$   |  **x1.2**   |    Standard Library    |
+| `keySet()`          |      $3.57 \times 10^{4}$      |   $1.08 \times 10^{4}$   |  **x3.3**   |    Standard Library    |
+| `put(K,V)`          |      $4.28 \times 10^{6}$      |   $3.62 \times 10^{6}$   |  **x1.2**   |    Standard Library    |
+| `putAll(Map)`       |      $2.51 \times 10^{6}$      |   $1.63 \times 10^{6}$   |  **x1.5**   |    Standard Library    |
+| `putIfAbsent(K,V)`  |      $4.19 \times 10^{6}$      |   $3.27 \times 10^{6}$   |  **x1.3**   |    Standard Library    |
+| `remove(K)`         |      $2.04 \times 10^{6}$      |   $1.49 \times 10^{6}$   |  **x1.4**   |    Standard Library    |
+| `remove(K,V)`       |      $5.10 \times 10^{6}$      |   $2.80 \times 10^{6}$   |  **x1.8**   |    Standard Library    |
+| `replace(K,V)`      |      $3.87 \times 10^{6}$      |   $3.02 \times 10^{6}$   |  **x1.3**   |    Standard Library    |
+| `replace(K,V,V)`    |      $5.69 \times 10^{6}$      |   $4.64 \times 10^{6}$   |  **x1.2**   |    Standard Library    |
+| `toString()`        |      $3.29 \times 10^{6}$      |   $2.54 \times 10^{6}$   |  **x1.3**   |    Standard Library    |
+| `values()`          |      $1.79 \times 10^{4}$      |   $6.17 \times 10^{3}$   |  **x2.9**   |    Standard Library    |
+
 
 # Performance Charts
 
-![clear().png](PerformanceCharts/clear%28%29.png)
-![containsKey(K).png](PerformanceCharts/containsKey%28K%29.png)
-![containsValue(V).png](PerformanceCharts/containsValue%28V%29.png)
-![entryset().png](PerformanceCharts/entrySet%28%29.png)
-![equals(Object o).png](PerformanceCharts/equals%28Object%20o%29.png)
-![get(K).png](PerformanceCharts/get%28K%29.png)
-![getOrDefault(K,V).png](PerformanceCharts/getOrDefault%28K%2CV%29.png)
-![keySet().png](PerformanceCharts/keySet%28%29.png)
-![put(K,V).png](PerformanceCharts/put%28K%2CV%29.png)
-![putAll(Map).png](PerformanceCharts/putAll%28Map%29.png)
-![putIfAbsent(K,V).png](PerformanceCharts/putIfAbsent%28K%2CV%29.png)
-![remove(K).png](PerformanceCharts/remove%28K%29.png)
-![remove(K,V).png](PerformanceCharts/remove%28K%2CV%29.png)
-![replace(K,V).png](PerformanceCharts/replace%28K%2CV%29.png)
-![replace(K,V,V).png](PerformanceCharts/replace%28K%2CV%2CV%29.png)
-![toString().png](PerformanceCharts/toString%28%29.png)
-![values().png](PerformanceCharts/values%28%29.png)
+![clear().png](PerformanceCharts/plot_clear__.png)
+![containsKey(K).png](PerformanceCharts/plot_containsKey_K_.png)
+![containsValue(V).png](PerformanceCharts/plot_containsValue_V_.png)
+![entryset().png](PerformanceCharts/plot_entrySet__.png)
+![equals(Object o).png](PerformanceCharts/plot_equals_Object_o_.png)
+![get(K).png](PerformanceCharts/plot_get_K_.png)
+![getOrDefault(K,V).png](PerformanceCharts/plot_getOrDefault_K_V_.png)
+![keySet().png](PerformanceCharts/plot_keySet__.png)
+![put(K,V).png](PerformanceCharts/plot_put_K_V_.png)
+![putAll(Map).png](PerformanceCharts/plot_putAll_Map_.png)
+![putIfAbsent(K,V).png](PerformanceCharts/plot_putIfAbsent_K_V_.png)
+![remove(K).png](PerformanceCharts/plot_remove_K_.png)
+![remove(K,V).png](PerformanceCharts/plot_remove_K_V_.png)
+![replace(K,V).png](PerformanceCharts/plot_replace_K_V_.png)
+![replace(K,V,V).png](PerformanceCharts/plot_replace_K_V_V_.png)
+![toString().png](PerformanceCharts/plot_toString__.png)
+![values().png](PerformanceCharts/plot_values__.png)
 
