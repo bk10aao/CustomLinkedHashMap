@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
 # Load datasets (Ensure these CSV files are in the same directory as the script)
-custom_df = pd.read_csv('CustomLinkedHashMap_performance.csv', sep=';')
+custom_df = pd.read_csv('CustomLinkedHashMap_performance_old.csv', sep=';')
 native_df = pd.read_csv('LinkedHashMap_performance.csv', sep=';')
 
 # Get common columns excluding 'Size' and 'compute(K,BiFunction)'

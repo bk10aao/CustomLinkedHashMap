@@ -37,19 +37,20 @@ import static java.util.Objects.requireNonNull;
  */
 public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
 
-    private final int maxEntries;
-
     private final Map<K, Node<K, V>> map;
+    private final Class<K> key;
+    private final Class<V> value;
 
-    private transient Node<K, V> head;
-    private transient Node<K, V> tail;
-
-    private transient Object computeScratchpad;
+    private transient final Node<K, V> headSentinel;
+    private transient final Node<K, V> tailSentinel;
+    private transient Set<K> cachedKeySet;
+    private transient Collection<V> cachedValues;
+    private transient Set<Map.Entry<K, V>> cachedEntrySet;
 
     private final boolean accessOrder;
 
-    private final Class<K> key;
-    private final Class<V> value;
+    private final int maxEntries;
+
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -117,14 +118,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      */
     public void clear() {
         map.clear();
-        Node<K, V> current = head;
-        while (current != null) {
-            Node<K, V> next = current.next;
-            current.prev = null;
-            current.next = null;
-            current = next;
-        }
-        head = tail = null;
+        // 🚀 O(1) clearance. Let the GC handle the isolated node island.
+        headSentinel.next = tailSentinel;
+        tailSentinel.prev = headSentinel;
     }
 
     /**
@@ -153,11 +149,14 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return {@code true} if this map maps one or more keys to the specified value
      */
     public boolean containsValue(final Object value) {
-        if(!this.value.isInstance(value))
+        // Fast fail on null or invalid type
+        if(value == null || !this.value.isInstance(value))
             return false;
-        Node<K, V> current = head;
-        while(current != null) {
-            if(Objects.equals(current.value, value))
+
+        Node<K, V> current = headSentinel.next;
+        while(current != tailSentinel) {
+            // 🚀 Bypasses Objects.equals stack frame entirely
+            if(value.equals(current.value))
                 return true;
             current = current.next;
         }
@@ -177,43 +176,42 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return a set view of the mappings contained in this map
      */
     public Set<Map.Entry<K, V>> entrySet() {
-        return new java.util.AbstractSet<>() {
-            @Override
-            public int size() {
-                return CustomLinkedHashMap.this.size();
-            }
+        Set<Map.Entry<K, V>> entrySet = cachedEntrySet;
+        if (entrySet == null) {
+            entrySet = new java.util.AbstractSet<>() {
+                @Override
+                public int size() {
+                    return CustomLinkedHashMap.this.size();
+                }
+                @Override
+                public java.util.Iterator<Map.Entry<K, V>> iterator() {
+                    return new java.util.Iterator<>() {
+                        private Node<K, V> current = headSentinel.next;
+                        private Node<K, V> lastReturned = null;
 
-            @Override
-            public java.util.Iterator<Map.Entry<K, V>> iterator() {
-                return new java.util.Iterator<>() {
-
-                    private Node<K, V> current = head;
-                    private Node<K, V> lastReturned = null;
-
-                    @Override
-                    public boolean hasNext() {
-                        return current != null;
-                    }
-
-                    @Override
-                    public Map.Entry<K, V> next() {
-                        if(!hasNext())
-                            throw new java.util.NoSuchElementException();
-                        lastReturned = current;
-                        current = current.next;
-                        return lastReturned;
-                    }
-
-                    @Override
-                    public void remove() {
-                        if(lastReturned == null)
-                            throw new IllegalStateException();
-                        CustomLinkedHashMap.this.remove(lastReturned.key);
-                        lastReturned = null;
-                    }
-                };
-            }
-        };
+                        @Override
+                        public boolean hasNext() {
+                            return current != tailSentinel;
+                        }
+                        @Override
+                        public Map.Entry<K, V> next() {
+                            if(!hasNext())
+                                throw new java.util.NoSuchElementException();
+                            lastReturned = current;
+                            current = current.next;
+                            return lastReturned;
+                        }
+                        @Override public void remove() {
+                            if(lastReturned == null) throw new IllegalStateException();
+                            CustomLinkedHashMap.this.remove(lastReturned.key);
+                            lastReturned = null;
+                        }
+                    };
+                }
+            };
+            cachedEntrySet = entrySet;
+        }
+        return entrySet;
     }
 
     /**
@@ -246,6 +244,16 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
                 return false;
         }
         return true;
+    }
+
+    @Override
+    public void forEach(java.util.function.BiConsumer<? super K, ? super V> action) {
+        requireNonNull(action);
+        Node<K, V> current = headSentinel.next;
+        while (current != tailSentinel) {
+            action.accept(current.key, current.value);
+            current = current.next;
+        }
     }
 
     /**
@@ -343,42 +351,48 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return a set view of the keys contained in this map
      */
     public Set<K> keySet() {
-        return new java.util.AbstractSet<>() {
-            @Override
-            public int size() {
-                return CustomLinkedHashMap.this.size();
-            }
+        Set<K> keyset = cachedKeySet;
+        if(keyset == null) {
+            keyset = new java.util.AbstractSet<>() {
+                @Override
+                public int size() {
+                    return CustomLinkedHashMap.this.size();
+                }
 
-            @Override
-            public java.util.Iterator<K> iterator() {
-                return new java.util.Iterator<>() {
-                    private Node<K, V> current = head;
-                    private Node<K, V> lastReturned = null;
+                @Override
+                public java.util.Iterator<K> iterator() {
+                    return new java.util.Iterator<>() {
+                        private Node<K, V> current = headSentinel.next;
+                        private Node<K, V> lastReturned = null;
 
-                    @Override
-                    public boolean hasNext() {
-                        return current != null;
-                    }
+                        @Override
+                        public boolean hasNext() {
+                            return current != tailSentinel;
+                        }
 
-                    @Override
-                    public K next() {
-                        if(!hasNext())
-                            throw new java.util.NoSuchElementException();
-                        lastReturned = current;
-                        current = current.next;
-                        return lastReturned.key;
-                    }
+                        @Override
+                        public K next() {
+                            if(!hasNext()) {
+                                throw new NoSuchElementException();
+                            }
+                            lastReturned = current;
+                            current = current.next;
+                            return lastReturned.key;
+                        }
 
-                    @Override
-                    public void remove() {
-                        if(lastReturned == null)
-                            throw new IllegalStateException();
-                        CustomLinkedHashMap.this.remove(lastReturned.key);
-                        lastReturned = null;
-                    }
-                };
-            }
-        };
+                        @Override
+                        public void remove() {
+                            if(lastReturned == null)
+                                throw new IllegalStateException();
+                            CustomLinkedHashMap.this.remove(lastReturned.key);
+                            lastReturned = null;
+                        }
+                    };
+                }
+            };
+            cachedKeySet = keyset;
+        }
+        return keyset;
     }
 
     /**
@@ -408,34 +422,27 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         requireNonNull(key);
         requireNonNull(value);
         validateTypes(key, value);
-        map.compute(key, (k, existingNode) -> {
-            if(existingNode != null) {
-                this.computeScratchpad = existingNode.value;
-                existingNode.value = value;
-                if(accessOrder)
-                    moveToTail(existingNode);
-                return existingNode;
-            } else {
-                this.computeScratchpad = null;
-                Node<K, V> newNode = new Node<>(key, value);
-                if(tail == null)
-                    head = tail = newNode;
-                else {
-                    tail.next = newNode;
-                    newNode.prev = tail;
-                    tail = newNode;
-                }
-                return newNode;
-            }
-        });
-        V oldValue = (V) this.computeScratchpad;
-        this.computeScratchpad = null;
-        if(oldValue == null && removeEldestEntry(head)) {
-            Node<K, V> eldest = head;
+
+        Node<K, V> existingNode = map.get(key);
+
+        if (existingNode != null) {
+            V old = existingNode.value;
+            existingNode.value = value;
+            if(accessOrder) moveToTail(existingNode);
+            return old;
+        }
+
+        // 🚀 SLOW-PATH: Instantiation and linking
+        Node<K, V> newNode = new Node<>(key, value);
+        map.put(key, newNode);
+        linkAtTail(newNode);
+
+        if(removeEldestEntry(headSentinel.next)) {
+            Node<K, V> eldest = headSentinel.next;
             map.remove(eldest.key);
             unlink(eldest);
         }
-        return oldValue;
+        return null;
     }
 
     /**
@@ -485,33 +492,24 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         requireNonNull(key);
         requireNonNull(value);
         validateTypes(key, value);
-        map.compute(key, (k, existingNode) -> {
-            if(existingNode != null) {
-                this.computeScratchpad = existingNode.value;
-                if(accessOrder)
-                    moveToTail(existingNode);
-                return existingNode;
-            } else {
-                this.computeScratchpad = null;
-                Node<K, V> newNode = new Node<>(k, value);
-                if(tail == null)
-                    head = tail = newNode;
-                else {
-                    tail.next = newNode;
-                    newNode.prev = tail;
-                    tail = newNode;
-                }
-                return newNode;
-            }
-        });
-        V oldValue = (V) this.computeScratchpad;
-        this.computeScratchpad = null;
-        if(oldValue == null && removeEldestEntry(head)) {
-            Node<K, V> eldest = head;
+
+        // 🚀 FAST-PATH: Zero-allocation lookup
+        Node<K, V> existingNode = map.get(key);
+        if (existingNode != null) {
+            if(accessOrder) moveToTail(existingNode);
+            return existingNode.value;
+        }
+
+        Node<K, V> newNode = new Node<>(key, value);
+        map.put(key, newNode);
+        linkAtTail(newNode);
+
+        if(removeEldestEntry(headSentinel.next)) {
+            Node<K, V> eldest = headSentinel.next;
             map.remove(eldest.key);
             unlink(eldest);
         }
-        return oldValue;
+        return null;
     }
 
     /**
@@ -555,20 +553,16 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public boolean remove(final Object key, final Object value) {
         requireNonNull(key);
         requireNonNull(value);
-        this.computeScratchpad = null;
-        map.compute((K) key, (k, existingNode) -> {
-            if(existingNode != null && Objects.equals(existingNode.value, value)) {
-                this.computeScratchpad = existingNode;
-                return null;
-            }
-            return existingNode;
-        });
-        Object result = this.computeScratchpad;
-        this.computeScratchpad = null;
-        if(result != null) {
-            unlink((Node<K, V>) result);
+
+        // 🚀 Zero-allocation lookup
+        Node<K, V> node = map.get(key);
+
+        if (node != null && value.equals(node.value)) {
+            map.remove(key);
+            unlink(node);
             return true;
         }
+
         return false;
     }
 
@@ -688,9 +682,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("{");
-        Node<K, V> current = head;
+        Node<K, V> current = headSentinel.next;
         boolean first = true;
-        while(current != null) {
+        while(current != tailSentinel) {
             if(!first)
                 stringBuilder.append(", ");
             stringBuilder.append(current);
@@ -710,42 +704,49 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return a collection view of the values contained in this map
      */
     public Collection<V> values() {
-        return new AbstractCollection<>() {
-            @Override
-            public int size() {
-                return CustomLinkedHashMap.this.size();
-            }
+        Collection<V> valuesSet = cachedValues;
+        if(valuesSet == null) {
+            valuesSet = new AbstractCollection<V>() {
 
-            @Override
-            public Iterator<V> iterator() {
-                return new Iterator<>() {
-                    private Node<K, V> current = head;
-                    private Node<K, V> lastReturned = null;
+                @Override
+                public int size() {
+                    return CustomLinkedHashMap.this.size();
+                }
 
-                    @Override
-                    public boolean hasNext() {
-                        return current != null;
-                    }
+                public Iterator<V> iterator() {
+                    return new Iterator<>() {
+                        private Node<K, V> current = headSentinel.next;
+                        private Node<K, V> lastReturned = null;
 
-                    @Override
-                    public V next() {
-                        if(!hasNext())
-                            throw new NoSuchElementException();
-                        lastReturned = current;
-                        current = current.next;
-                        return lastReturned.value;
-                    }
+                        @Override
+                        public boolean hasNext() {
+                            return current != tailSentinel;
+                        }
 
-                    @Override
-                    public void remove() {
-                        if(lastReturned == null)
-                            throw new IllegalStateException();
-                        CustomLinkedHashMap.this.remove(lastReturned.key);
-                        lastReturned = null;
-                    }
-                };
-            }
-        };
+                        @Override
+                        public V next() {
+                            if(!hasNext()) {
+                                throw new NoSuchElementException();
+                            }
+                            lastReturned = current;
+                            current = current.next;
+                            return lastReturned.value;
+                        }
+
+                        @Override
+                        public void remove() {
+                            if(lastReturned == null)
+                                throw new IllegalStateException();
+                            CustomLinkedHashMap.this.remove(lastReturned.key);
+                            lastReturned = null;
+                        }
+                    };
+                }
+            };
+            cachedValues = valuesSet;
+        }
+        return valuesSet;
+
     }
 
     /**
@@ -780,6 +781,12 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         this.value = value;
         this.maxEntries = maxEntries;
         this.accessOrder = accessOrder;
+
+        this.headSentinel = new Node<>(null, null);
+        this.tailSentinel = new Node<>(null, null);
+        this.headSentinel.next = tailSentinel;
+        this.tailSentinel.prev = this.headSentinel;
+
         int initialCapacity;
         if(maxEntries == Integer.MAX_VALUE)
             initialCapacity = 16;
@@ -791,23 +798,21 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     }
 
     private void moveToTail(final Node<K, V> node) {
-        if(node == tail)
+        if(node == tailSentinel.prev)
             return;
-        if(node.prev != null)
-            node.prev.next = node.next;
-        else
-            head = node.next;
-        if(node.next != null)
-            node.next.prev = node.prev;
-        else
-            tail = node.prev;
-        node.prev = tail;
-        node.next = null;
-        if(tail != null)
-            tail.next = node;
-        tail = node;
-        if(head == null)
-            head = node;
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+        node.prev = tailSentinel.prev;
+        node.next = tailSentinel;
+        tailSentinel.prev.next = node;
+        tailSentinel.prev = node;
+    }
+
+    private void linkAtTail(final Node<K, V> node) {
+        node.prev = tailSentinel.prev;
+        node.next = tailSentinel;
+        tailSentinel.prev.next = node;
+        tailSentinel.prev = node;
     }
 
     private void throwClassCastException() {
@@ -815,16 +820,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     }
 
     private void unlink(final Node<K, V> node) {
-        if(node.prev != null)
-            node.prev.next = node.next;
-        else
-            head = node.next;
-
-        if(node.next != null)
-            node.next.prev = node.prev;
-        else
-            tail = node.prev;
-
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
         node.prev = null;
         node.next = null;
     }
