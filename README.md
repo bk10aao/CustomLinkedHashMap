@@ -66,25 +66,25 @@ To test the project run command `./gradlew test`
 - **n**: Total number of key-value mappings currently in the map.
 - **m**: Number of key-value mappings in the input map.
 
-|  Method             |    CustomLinkedHashMap (ns)    |    LinkedHashMap (ns)    | Multiplier  | Faster Implementation  |
-|---------------------|:------------------------------:|:------------------------:|:-----------:|:----------------------:|
-| `clear()`           |      $1.42 \times 10^{6}$      |   $1.23 \times 10^{5}$   |  **x11.6**  |    Standard Library    |
-| `containsKey(K)`    |      $1.63 \times 10^{6}$      |   $1.13 \times 10^{6}$   |  **x1.4**   |    Standard Library    |
-| `containsValue(V)`  |      $5.46 \times 10^{9}$      |   $4.84 \times 10^{9}$   |  **x1.1**   |    Standard Library    |
-| `entrySet()`        |      $1.01 \times 10^{3}$      |   $8.29 \times 10^{2}$   |  **x1.2**   |    Standard Library    |
-| `equals(Object o)`  |      $1.11 \times 10^{6}$      |   $9.53 \times 10^{5}$   |  **x1.2**   |    Standard Library    |
-| `get(K)`            |      $1.51 \times 10^{6}$      |   $1.35 \times 10^{6}$   |  **x1.1**   |    Standard Library    |
-| `getOrDefault(K,V)` |      $1.55 \times 10^{6}$      |   $1.31 \times 10^{6}$   |  **x1.2**   |    Standard Library    |
-| `keySet()`          |      $3.57 \times 10^{4}$      |   $1.08 \times 10^{4}$   |  **x3.3**   |    Standard Library    |
-| `put(K,V)`          |      $4.28 \times 10^{6}$      |   $3.62 \times 10^{6}$   |  **x1.2**   |    Standard Library    |
-| `putAll(Map)`       |      $2.51 \times 10^{6}$      |   $1.63 \times 10^{6}$   |  **x1.5**   |    Standard Library    |
-| `putIfAbsent(K,V)`  |      $4.19 \times 10^{6}$      |   $3.27 \times 10^{6}$   |  **x1.3**   |    Standard Library    |
-| `remove(K)`         |      $2.04 \times 10^{6}$      |   $1.49 \times 10^{6}$   |  **x1.4**   |    Standard Library    |
-| `remove(K,V)`       |      $5.10 \times 10^{6}$      |   $2.80 \times 10^{6}$   |  **x1.8**   |    Standard Library    |
-| `replace(K,V)`      |      $3.87 \times 10^{6}$      |   $3.02 \times 10^{6}$   |  **x1.3**   |    Standard Library    |
-| `replace(K,V,V)`    |      $5.69 \times 10^{6}$      |   $4.64 \times 10^{6}$   |  **x1.2**   |    Standard Library    |
-| `toString()`        |      $3.29 \times 10^{6}$      |   $2.54 \times 10^{6}$   |  **x1.3**   |    Standard Library    |
-| `values()`          |      $1.79 \times 10^{4}$      |   $6.17 \times 10^{3}$   |  **x2.9**   |    Standard Library    |
+| Method              | CustomLinkedHashMap (ns) |  LinkedHashMap (ns)   | Multiplier | Faster Implementation |
+|:--------------------|:------------------------:|:---------------------:|:----------:|:----------------------|
+| `clear()`           |   $7.85 \times 10^{4}$   | $7.93 \times 10^{4}$  | **x0.99**  | CustomLinkedHashMap   |
+| `containsKey(K)`    |   $1.59 \times 10^{6}$   | $1.24 \times 10^{6}$  | **x1.28**  | Standard Library      |
+| `containsValue(V)`  |  $1.31 \times 10^{10}$   | $1.21 \times 10^{10}$ | **x1.08**  | Standard Library      |
+| `entrySet()`        |   $9.58 \times 10^{2}$   | $5.83 \times 10^{2}$  | **x1.64**  | Standard Library      |
+| `equals(Object o)`  |   $5.78 \times 10^{5}$   | $5.29 \times 10^{5}$  | **x1.09**  | Standard Library      |
+| `get(K)`            |   $1.55 \times 10^{6}$   | $1.26 \times 10^{6}$  | **x1.22**  | Standard Library      |
+| `getOrDefault(K,V)` |   $1.94 \times 10^{6}$   | $1.20 \times 10^{6}$  | **x1.61**  | Standard Library      |
+| `keySet()`          |   $1.29 \times 10^{3}$   | $1.92 \times 10^{3}$  | **x0.67**  | CustomLinkedHashMap   |
+| `put(K,V)`          |   $4.38 \times 10^{6}$   | $4.01 \times 10^{6}$  | **x1.09**  | Standard Library      |
+| `putAll(Map)`       |   $2.26 \times 10^{6}$   | $1.76 \times 10^{6}$  | **x1.29**  | Standard Library      |
+| `putIfAbsent(K,V)`  |   $4.74 \times 10^{6}$   | $4.63 \times 10^{6}$  | **x1.03**  | Standard Library      |
+| `remove(K)`         |   $1.95 \times 10^{6}$   | $1.26 \times 10^{6}$  | **x1.55**  | Standard Library      |
+| `remove(K,V)`       |   $4.12 \times 10^{6}$   | $2.85 \times 10^{6}$  | **x1.45**  | Standard Library      |
+| `replace(K,V)`      |   $5.48 \times 10^{6}$   | $4.91 \times 10^{6}$  | **x1.12**  | Standard Library      |
+| `replace(K,V,V)`    |   $7.49 \times 10^{6}$   | $7.50 \times 10^{6}$  | **x1.00**  | CustomLinkedHashMap   |
+| `toString()`        |   $3.65 \times 10^{6}$   | $2.33 \times 10^{6}$  | **x1.57**  | Standard Library      |
+| `values()`          |   $1.25 \times 10^{3}$   | $1.42 \times 10^{3}$  | **x0.88**  | CustomLinkedHashMap   |
 
 
 # Performance Charts
