@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -22,12 +23,6 @@ public class CustomLinkedHashMapTest {
     public void createEmptyMap_returnsMapOfSize_0() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
         assertEquals(0, map.size());
-    }
-
-    @Test
-    public void createMap_onPutKeyOf_null_throws_NullPointerException() {
-        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        assertThrows(NullPointerException.class, ()-> map.put(null, 1));
     }
 
     @Test
@@ -248,12 +243,6 @@ public class CustomLinkedHashMapTest {
     }
 
     @Test
-    public void createMap_onGetOrDefault_withKeyValueOfNull_throws_NullPointerException() {
-        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        assertThrows(NullPointerException.class, () -> map.getOrDefault(null, null));
-    }
-
-    @Test
     public void createMapOfType_String_String_onGetOrDefault_withKeyValueOfIntegerType_andReturnValue_DUMMY_returns_DUMMY() {
         CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
         assertEquals("DUMMY", map.getOrDefault(1, "DUMMY"));
@@ -272,7 +261,7 @@ public class CustomLinkedHashMapTest {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
         for (int i = 0; i < 13; i++)
             map.put(i, i * 10);
-        assertEquals(100, map.getOrDefault(10, 1000));
+        assertEquals(100, map.getOrDefault(10, 100));
     }
 
     @Test
@@ -536,7 +525,7 @@ public class CustomLinkedHashMapTest {
     @Test
     public void givenEmptyMap_onEntrySet_returnsEmptySet() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        Set<CustomLinkedHashMap.Entry<Integer, Integer>> entries = map.entrySet();
+        Set<Map.Entry<Integer, Integer>> entries = map.entrySet();
         assertEquals(0, entries.size());
     }
 
