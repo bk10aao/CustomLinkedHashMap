@@ -39,17 +39,21 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     private final Class<V> valueType;
 
     private transient Set<K> cachedKeySet;
-    private transient Collection<V> cachedValues;
     private transient Set<Map.Entry<K, V>> cachedEntrySet;
+
+    private transient Collection<V> cachedValues;
 
     private final boolean accessOrder;
 
     private final int maxEntries;
 
-    private transient Entry<K, V>[] table;
     private transient int size;
     private transient int threshold;
+
     private final float loadFactor = 0.75f;
+
+    private transient Entry<K, V>[] table;
+
     private transient Entry<K, V> head;
     private transient Entry<K, V> tail;
 
@@ -59,16 +63,14 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public CustomLinkedHashMap(final Class<K> keyType, final Class<V> valueType, final int maxEntries, final boolean accessOrder) {
         this.keyType = requireNonNull(keyType);
         this.valueType = requireNonNull(valueType);
-        if (maxEntries <= 0) {
+        if(maxEntries <= 0)
             throw new IllegalArgumentException("Maximum entries must be greater than zero.");
-        }
         this.maxEntries = maxEntries;
         this.accessOrder = accessOrder;
-
         int capacity = (maxEntries == Integer.MAX_VALUE) ? 16 : Math.max(16, (int) Math.ceil(maxEntries / loadFactor));
         int cap = 1;
-        while (cap < capacity) cap <<= 1;
-
+        while(cap < capacity)
+            cap <<= 1;
         this.table = (Entry<K, V>[]) new Entry[cap];
         this.threshold = (int) (cap * loadFactor);
     }
@@ -108,7 +110,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public void clear() {
         size = 0;
         Entry<K, V>[] tab = table;
-        if (tab != null)
+        if(tab != null)
             Arrays.fill(tab, null);
         head = null;
         tail = null;
@@ -124,13 +126,13 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return {@code true} if this map contains a mapping for the specified key
      */
     public boolean containsKey(final Object key) {
-        if (key == null)
+        if(key == null)
             return false;
         int h = hash(key);
         int index = getIndex(h);
         Entry<K, V> entry;
-        for (entry = table[index]; entry != null; entry = entry.next)
-            if ( entry.hash == h && Objects.equals(key, entry.key))
+        for(entry = table[index]; entry != null; entry = entry.next)
+            if(entry.hash == h && Objects.equals(key, entry.key))
                 return true;
         return false;
     }
@@ -183,11 +185,13 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
                     V val = get(e.getKey());
                     return val != null && Objects.equals(val, e.getValue());
                 }
+
                 @Override public boolean remove(Object o) {
                     if (!(o instanceof Map.Entry<?, ?> e))
                         return false;
                     return CustomLinkedHashMap.this.remove(e.getKey(), e.getValue());
                 }
+
                 @Override public Iterator<Map.Entry<K, V>> iterator() {
                     return new EntryIterator();
                 }
@@ -490,10 +494,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         return null;
     }
 
-    private int getIndex(int h) {
-        return (table.length - 1) & h;
-    }
-
     /**
      * Removes the entry for the specified key only if it is currently mapped to
      * the specified value.
@@ -745,34 +745,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         this.size = 0;
     }
 
-    private void moveToTail(final Entry<K, V> node) {
-        if (node == tail)
-            return;
-        if (node.before != null)
-            node.before.after = node.after;
-        else
-            head = node.after;
-        if (node.after != null)
-            node.after.before = node.before;
-        node.before = tail;
-        node.after = null;
-        tail.after = node;
-        tail = node;
-    }
 
-    private void unlink(final Entry<K, V> entry) {
-        if(entry.before != null)
-            entry.before.after = entry.after;
-        else
-            head = entry.after;
-        entry.before = null;
-        entry.after = null;
-    }
-
-    private void validateTypes(final K key, final V value) {
-        if(!this.keyType.isInstance(key) || !this.valueType.isInstance(value))
-            throw new ClassCastException("Incompatible key or value type token validation failed.");
-    }
 
     /**
      * A private, static internal node that encapsulates a single key-value mapping
@@ -888,6 +861,40 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         public Map.Entry<K, V> next() { return nextNode(); }
     }
 
+    private void evictEldestIfNeeded() {
+        if (head != null && removeEldestEntry(head))
+            remove(head.key);
+    }
+
+    private int getIndex(int h) {
+        return (table.length - 1) & h;
+    }
+
+    private void linkTail(Entry<K,V> entry) {
+        if(head == null)
+            head = entry;
+        else {
+            tail.after = entry;
+            entry.before = tail;
+        }
+        tail = entry;
+    }
+
+    private void moveToTail(final Entry<K, V> node) {
+        if (node == tail)
+            return;
+        if (node.before != null)
+            node.before.after = node.after;
+        else
+            head = node.after;
+        if (node.after != null)
+            node.after.before = node.before;
+        node.before = tail;
+        node.after = null;
+        tail.after = node;
+        tail = node;
+    }
+
     /**
      * Internal core insertion logic used by put, putAll, and putIfAbsent.
      * Performs type validation, hash table insertion, doubly-linked list maintenance,
@@ -915,16 +922,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         return null;
     }
 
-    private void linkTail(Entry<K,V> entry) {
-        if(head == null)
-            head = entry;
-        else {
-            tail.after = entry;
-            entry.before = tail;
-        }
-        tail = entry;
-    }
-
     private void resize(){
         resizeTo(table.length << 1);
     }
@@ -943,8 +940,17 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         threshold = (int)(newCapacity * loadFactor);
     }
 
-    private void evictEldestIfNeeded() {
-        if (head != null && removeEldestEntry(head))
-            remove(head.key);
+    private void unlink(final Entry<K, V> entry) {
+        if(entry.before != null)
+            entry.before.after = entry.after;
+        else
+            head = entry.after;
+        entry.before = null;
+        entry.after = null;
+    }
+
+    private void validateTypes(final K key, final V value) {
+        if(!this.keyType.isInstance(key) || !this.valueType.isInstance(value))
+            throw new ClassCastException("Incompatible key or value type token validation failed.");
     }
 }
