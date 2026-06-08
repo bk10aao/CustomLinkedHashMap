@@ -185,21 +185,21 @@ public class CustomLinkedHashMapTest {
     }
 
     @Test
-    public void givenMap_onRemove_withKeyValue_withNullKey_throws_NullPointerException() {
+    public void givenMap_onRemove_withKeyValue_withNullKey_returnsFalse() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        assertThrows(NullPointerException.class, () -> map.remove(null, 123));
+        assertFalse(map.remove(null, 123));
     }
 
     @Test
-    public void givenMap_onRemove_withKeyValue_withNullValue_throws_NullPointerException() {
+    public void givenMap_onRemove_withKeyValue_withNullValue_returnsFalse() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        assertThrows(NullPointerException.class, () -> map.remove("123", null));
+        assertFalse(map.remove("123", null));
     }
 
     @Test
-    public void givenMap_onRemove_withKeyValue_withNullKey_andNullValue_throws_NullPointerException() {
+    public void givenMap_onRemove_withKeyValue_withNullKey_andNullValue_returnsFalse() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        assertThrows(NullPointerException.class, () -> map.remove(null, null));
+        assertFalse(map.remove(null, null));
     }
 
     @Test

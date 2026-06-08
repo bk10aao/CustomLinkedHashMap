@@ -118,9 +118,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      */
     public void clear() {
         map.clear();
-        // 🚀 O(1) clearance. Let the GC handle the isolated node island.
         headSentinel.next = tailSentinel;
         tailSentinel.prev = headSentinel;
+        cachedKeySet = null;
+        cachedValues = null;
+        cachedEntrySet = null;
     }
 
     /**
@@ -135,7 +137,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public boolean containsKey(final Object key) {
         if(!this.key.isInstance(key))
             return false;
-        return map.containsKey(key);
+        return map.get(key) != null;
     }
 
     /**
@@ -149,14 +151,12 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return {@code true} if this map maps one or more keys to the specified value
      */
     public boolean containsValue(final Object value) {
-        // Fast fail on null or invalid type
         if(value == null || !this.value.isInstance(value))
             return false;
 
         Node<K, V> current = headSentinel.next;
         while(current != tailSentinel) {
-            // 🚀 Bypasses Objects.equals stack frame entirely
-            if(value.equals(current.value))
+            if(value == current.value || value.equals(current.value))
                 return true;
             current = current.next;
         }
@@ -236,12 +236,12 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             return false;
         if(size() != otherMap.size())
             return false;
-        for(Map.Entry<K, V> entry : entrySet()) {
-            K key = entry.getKey();
-            V value = entry.getValue();
-            Object otherValue = otherMap.get(key);
-            if(!Objects.equals(value, otherValue))
+        Node<K, V> current = headSentinel.next;
+        while(current != tailSentinel) {
+            Object otherValue = otherMap.get(current.key);
+            if(!Objects.equals(current.value, otherValue))
                 return false;
+            current = current.next;
         }
         return true;
     }
@@ -271,6 +271,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * or {@code null} if this map contains no mapping for the key
      */
     public V get(final Object key) {
+        if(key == null || !this.key.isInstance(key))
+            return null;
         Node<K, V> node = map.get(key);
         if(node == null)
             return null;
@@ -321,8 +323,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     @Override
     public int hashCode() {
         int h = 0;
-        for(Map.Entry<K, V> entry : entrySet())
-            h += entry.hashCode();
+        Node<K, V> current = headSentinel.next;
+        while(current != tailSentinel) {
+            h += current.hashCode();
+            current = current.next;
+        }
         return h;
     }
 
@@ -422,17 +427,14 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         requireNonNull(key);
         requireNonNull(value);
         validateTypes(key, value);
-
         Node<K, V> existingNode = map.get(key);
-
-        if (existingNode != null) {
+        if(existingNode != null) {
             V old = existingNode.value;
             existingNode.value = value;
             if(accessOrder) moveToTail(existingNode);
             return old;
         }
 
-        // 🚀 SLOW-PATH: Instantiation and linking
         Node<K, V> newNode = new Node<>(key, value);
         map.put(key, newNode);
         linkAtTail(newNode);
@@ -493,12 +495,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         requireNonNull(value);
         validateTypes(key, value);
 
-        // 🚀 FAST-PATH: Zero-allocation lookup
         Node<K, V> existingNode = map.get(key);
-        if (existingNode != null) {
-            if(accessOrder) moveToTail(existingNode);
+        if (existingNode != null)
             return existingNode.value;
-        }
 
         Node<K, V> newNode = new Node<>(key, value);
         map.put(key, newNode);
@@ -551,18 +550,15 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @return {@code true} if the value was removed, {@code false} otherwise
      */
     public boolean remove(final Object key, final Object value) {
-        requireNonNull(key);
-        requireNonNull(value);
-
-        // 🚀 Zero-allocation lookup
-        Node<K, V> node = map.get(key);
-
+        if(key == null || value == null)
+            return false;
+        Node<K, V> node = map.remove(key);
         if (node != null && value.equals(node.value)) {
-            map.remove(key);
             unlink(node);
             return true;
         }
-
+        if(node != null)
+            map.put((K) node.key, node);
         return false;
     }
 
@@ -646,8 +642,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         requireNonNull(oldValue);
         requireNonNull(newValue);
         validateTypes(key, newValue);
-        if(!this.value.isInstance(oldValue))
-            throwClassCastException();
         Node<K, V> node = map.get(key);
         if(node == null)
             return false;
@@ -681,14 +675,14 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      */
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("{");
+        StringBuilder stringBuilder = new StringBuilder(size() * 16 + 2).append('{');
         Node<K, V> current = headSentinel.next;
-        boolean first = true;
-        while(current != tailSentinel) {
-            if(!first)
-                stringBuilder.append(", ");
+        if(current != tailSentinel) {
             stringBuilder.append(current);
-            first = false;
+            current = current.next;
+        }
+        while(current != tailSentinel) {
+            stringBuilder.append(", ").append(current);
             current = current.next;
         }
         return stringBuilder.append("}").toString();
@@ -845,7 +839,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * @param <V> the type of mapped value maintained by this entry node
      */
     private static class Node<K, V> implements Map.Entry<K, V> {
-        K key;
+        final K key;
         V value;
         Node<K, V> prev;
         Node<K, V> next;
@@ -897,7 +891,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
          */
         @Override
         public String toString() {
-            return key + "=" + value;
+            return new StringBuilder().append(key).append('=').append(value).toString();
+        }
+
+        void appendTo(final StringBuilder sb) {
+            sb.append(key).append('=').append(value);
         }
     }
 }
