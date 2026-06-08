@@ -832,18 +832,22 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         Entry<K, V> next = head;
         Entry<K, V> lastReturned = null;
 
-        public final boolean hasNext() { return next != null; }
+        public final boolean hasNext() {
+            return next != null;
+        }
 
         final Entry<K, V> nextNode() {
             Entry<K, V> e = next;
-            if (e == null) throw new NoSuchElementException();
+            if (e == null)
+                throw new NoSuchElementException();
             lastReturned = e;
             next = e.after;
             return e;
         }
 
         public final void remove() {
-            if (lastReturned == null) throw new IllegalStateException();
+            if (lastReturned == null)
+                throw new IllegalStateException();
             CustomLinkedHashMap.this.remove(lastReturned.key);
             lastReturned = null;
         }
@@ -905,7 +909,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         int index = getIndex(h);
         for(Entry<K, V> entry = table[index]; entry != null; entry = entry.next) {
             if (entry.hash == h && Objects.equals(key, entry.key)) {
-
                 V oldValue = entry.value;
                 entry.value = value;
                 if(accessOrder)
