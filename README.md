@@ -105,7 +105,7 @@ Note: all data is an average of 100 runs.
 ![computeIfPresent(K,Function).png](PerformanceCharts/plot_computeIfPresent_K_BiFunction_.png)
 ![containsKey(K).png](PerformanceCharts/plot_containsKey_K_.png)
 ![containsValue(V).png](PerformanceCharts/plot_containsValue_V_.png)
-![entryset().png](PerformanceCharts/plot_entrySet__.png)
+![entrySet().png](PerformanceCharts/plot_entrySet__.png)
 ![equals(Object o).png](PerformanceCharts/plot_equals_Object_o_.png)
 ![forEach(BiConsumer.png](PerformanceCharts/plot_forEach_BiConsumer_.png)
 ![get(K).png](PerformanceCharts/plot_get_K_.png)
