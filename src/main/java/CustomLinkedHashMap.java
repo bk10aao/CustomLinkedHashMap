@@ -16,15 +16,15 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * A specialized hash table and doubly-linked list-based implementation of the {@link Map} interface.
- * * <p>Unlike standard map implementations, this class manages its own hash table array and
+ * <p>Unlike standard map implementations, this class manages its own hash table array and
  * collision resolution chain, avoiding dependency on {@code java.util.HashMap}. It maintains
  * insertion or access order via an internal doubly-linked list of {@link Entry} objects.
- * * <p>This implementation prohibits both {@code null} keys and {@code null} values, enforcing
+ * <p>This implementation prohibits both {@code null} keys and {@code null} values, enforcing
  * runtime type safety via {@link Class} type tokens provided at construction.
- * * <p>The map uses a power-of-two table size for efficient bitwise index masking and maintains
+ * <p>The map uses a power-of-two table size for efficient bitwise index masking and maintains
  * a load factor-based threshold to trigger rehashing. Structural access order is optionally
  * maintained by relocating accessed nodes to the tail of the list.
- * * <p><b>Note:</b> This implementation is not synchronized.
+ * <p><b>Note:</b> This implementation is not synchronized.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
@@ -919,8 +919,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
 
     private void resizeTo(int newCapacity) {
         Entry<K, V>[] newTable = (Entry<K, V>[]) new Entry[newCapacity];
-        for(Entry<K, V> entry = head; entry != null; entry = entry.after)
-            entry.next = newTable[(newCapacity - 1) & entry.hash];
+        for(Entry<K, V> entry = head; entry != null; entry = entry.after) {
+            int index = (newCapacity - 1) & entry.hash;
+            entry.next = newTable[index];
+            newTable[index] = entry;
+        }
         table = newTable;
         threshold = (int)(newCapacity * loadFactor);
     }
@@ -930,6 +933,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             entry.before.after = entry.after;
         else
             head = entry.after;
+        if (entry.after != null)
+            entry.after.before = entry.before;
+        else
+            tail = entry.before;
         entry.before = null;
         entry.after = null;
     }
