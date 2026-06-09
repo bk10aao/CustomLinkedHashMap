@@ -763,11 +763,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     public static class Entry<K, V> implements Map.Entry<K, V> {
         final int hash;
         final K key;
-        V value;
+        private V value;
 
-        Entry<K, V> next;
-        Entry<K, V> before;
-        Entry<K, V> after;
+        private Entry<K, V> next;
+        private Entry<K, V> before;
+        private Entry<K, V> after;
 
         Entry(int hash, K key, V value, Entry<K, V> next) {
             this.hash = hash;
@@ -816,8 +816,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     }
 
     private abstract class LinkedHashIterator {
-        Entry<K, V> next = head;
-        Entry<K, V> lastReturned = null;
+        private Entry<K, V> next = head;
+        private Entry<K, V> lastReturned = null;
 
         public final boolean hasNext() {
             return next != null;
