@@ -53,7 +53,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     private final float loadFactor = 0.75f;
 
     private transient Entry<K, V>[] table;
-
     private transient Entry<K, V> head;
     private transient Entry<K, V> tail;
 
