@@ -99,7 +99,8 @@ Note: all data is an average of 100 runs.
 | replaceAll(BiFunction)         | 805,712.0                | 1,849,566.0              |     *Custom*     |  x2.30  |
 
 # Performance Charts
-#### Note: The following performance charts designed to be viewed in dark mode.
+
+#### Note: The following performance charts are designed to be viewed in dark mode.
 
 ![clear().png](PerformanceCharts/plot_clear__.png)
 ![computeIfAbsent(K,Function).png](PerformanceCharts/plot_computeIfAbsent_K_Function_.png)
