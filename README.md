@@ -72,35 +72,37 @@ Below performance is a comparison made at 100,000 operations per method.
 
 Note: all data is an average of 100 runs.
 
-| Method                         | CustomLinkedHashMap (ns) | LinkedHashMap (JDK) (ns) |      Winner      | Margin  |
-|:-------------------------------|:-------------------------|:-------------------------|:----------------:|:-------:|
-| put(K,V)                       | 279.0                    | 400.0                    |     *Custom*     |  x1.43  |
-| get(K)                         | 51.0                     | 53.0                     |     *Custom*     |  x1.04  |
-| getOrDefault(K,V)              | 102.0                    | 84.0                     | *LinkedHashMap*  |  x1.21  |
-| remove(K)                      | 3,425.0                  | 3,016.0                  | *LinkedHashMap*  |  x1.14  |
-| remove(K,V)                    | 1,358.0                  | 2,120.0                  |     *Custom*     |  x1.56  |
-| containsKey(K)                 | 65.0                     | 150.0                    |     *Custom*     |  x2.31  |
-| containsValue(V)               | 170,937.0                | 166,859.0                | *LinkedHashMap*  |  x1.02  |
-| putIfAbsent(K,V)               | 3,695.0                  | 537.0                    | *LinkedHashMap*  |  x6.88  |
-| replace(K,V)                   | 112.0                    | 111.0                    |      *Tie*       |  x1.00  |
-| replace(K,V,V)                 | 129.0                    | 128.0                    |      *Tie*       |  x1.00  |
-| keySet()                       | 67.0                     | 49.0                     | *LinkedHashMap*  |  x1.37  |
-| values()                       | 50.0                     | 57.0                     |     *Custom*     |  x1.14  |
-| clear()                        | 72,204.0                 | 66,308.0                 | *LinkedHashMa*p  |  x1.09  |
-| equals(Object o)               | 441,883.0                | 607,620.0                |     *Custom*     |  x1.38  |
-| toString()                     | 2,054,441.0              | 2,922,745.0              |     *Custom*     |  x1.42  |
-| entrySet()                     | 58.0                     | 44.0                     | *LinkedHashMap*  |  x1.32  |
-| putAll(Map)                    | 1,922,596.0              | 2,324,066.0              |     *Custom*     |  x1.21  |
-| compute(K,BiFunction)          | 375.0                    | 266.0                    | *LinkedHashMap*  |  x1.41  |
-| computeIfAbsent(K,Function)    | 741.0                    | 1,128.0                  |     *Custom*     |  x1.52  |
-| computeIfPresent(K,BiFunction) | 116.0                    | 211.0                    |     *Custom*     |  x1.82  |
-| forEach(BiConsumer)            | 268,337.0                | 235,058.0                | *LinkedHashMap*  |  x1.14  |
-| merge(K,V,BiFunction)          | 149.0                    | 167.0                    |     *Custom*     |  x1.12  |
-| replaceAll(BiFunction)         | 805,712.0                | 1,849,566.0              |     *Custom*     |  x2.30  |
+| Method                           | CustomLinkedHashMap (ns) | LinkedHashMap (JDK) (ns) |   Winner    | Margin  |
+|:---------------------------------|:-------------------------|:-------------------------|:-----------:|:-------:|
+| `clear()`                        | 56,136.1                 | 38,475.3                 |   **JDK**   |  1.46x  |
+| `compute(K,BiFunction)`          | 285.6                    | 385.2                    | **Custom**  |  1.35x  |
+| `computeIfAbsent(K,Function)`    | 1,266.3                  | 2,269.0                  | **Custom**  |  1.79x  |
+| `computeIfPresent(K,BiFunction)` | 257.1                    | 313.3                    | **Custom**  |  1.22x  |
+| `containsKey(K)`                 | 102.0                    | 125.6                    | **Custom**  |  1.23x  |
+| `containsValue(V)`               | 109,835.6                | 110,953.0                | **Custom**  |  1.01x  |
+| `entrySet()`                     | 80.1                     | 77.8                     |   **JDK**   |  1.03x  |
+| `equals(Object o)`               | 291,771.9                | 309,187.0                | **Custom**  |  1.06x  |
+| `forEach(BiConsumer)`            | 184,223.7                | 161,824.9                |   **JDK**   |  1.14x  |
+| `get(K)`                         | 63.1                     | 96.0                     | **Custom**  |  1.52x  |
+| `getOrDefault(K,V)`              | 131.3                    | 162.2                    | **Custom**  |  1.24x  |
+| `keySet()`                       | 86.0                     | 127.4                    | **Custom**  |  1.48x  |
+| `merge(K,V,BiFunction)`          | 215.1                    | 289.6                    | **Custom**  |  1.35x  |
+| `put(K,V)`                       | 465.8                    | 602.7                    | **Custom**  |  1.29x  |
+| `putAll(Map)`                    | 1,400,233.9              | 1,430,576.4              | **Custom**  |  1.02x  |
+| `putIfAbsent(K,V)`               | 1,521.8                  | 750.9                    |   **JDK**   |  2.03x  |
+| `remove(K)`                      | 1,432.4                  | 1,408.9                  |   **JDK**   |  1.02x  |
+| `remove(K,V)`                    | 1,988.3                  | 2,652.3                  | **Custom**  |  1.33x  |
+| `replace(K,V)`                   | 133.6                    | 141.0                    | **Custom**  |  1.06x  |
+| `replace(K,V,V)`                 | 272.2                    | 216.4                    |   **JDK**   |  1.26x  |
+| `replaceAll(BiFunction)`         | 660,805.1                | 636,214.0                |   **JDK**   |  1.04x  |
+| `toString()`                     | 1,283,370.9              | 1,581,979.8              | **Custom**  |  1.23x  |
+| `values()`                       | 64.0                     | 64.6                     | **Custom**  |  1.01x  |
 
 # Performance Charts
 
 #### Note: The following performance charts are designed to be viewed in dark mode.
+
+![GeometricPerformance](PerformanceCharts/geometric_performance.png)
 
 ![clear().png](PerformanceCharts/plot_clear__.png)
 ![computeIfAbsent(K,Function).png](PerformanceCharts/plot_computeIfAbsent_K_Function_.png)
@@ -113,8 +115,8 @@ Note: all data is an average of 100 runs.
 ![get(K).png](PerformanceCharts/plot_get_K_.png)
 ![getOrDefault(K,V).png](PerformanceCharts/plot_getOrDefault_K_V_.png)
 ![keySet().png](PerformanceCharts/plot_keySet__.png)
-![put(K,V).png](PerformanceCharts/plot_put_K_V_.png)
 ![merge(K,V,BiFunction).png](PerformanceCharts/plot_merge_K_V_BiFunction_.png)
+![put(K,V).png](PerformanceCharts/plot_put_K_V_.png)
 ![putAll(Map).png](PerformanceCharts/plot_putAll_Map_.png)
 ![putIfAbsent(K,V).png](PerformanceCharts/plot_putIfAbsent_K_V_.png)
 ![remove(K).png](PerformanceCharts/plot_remove_K_.png)
@@ -124,4 +126,3 @@ Note: all data is an average of 100 runs.
 ![replaceAll(BiFunction).png](PerformanceCharts/plot_replaceAll_BiFunction_.png)
 ![toString().png](PerformanceCharts/plot_toString__.png)
 ![values().png](PerformanceCharts/plot_values__.png)
-

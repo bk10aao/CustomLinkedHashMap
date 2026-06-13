@@ -2,8 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-# Load datasets (Ensure these CSV files are in the same directory as the script)
-custom_df = pd.read_csv('CustomLinkedHashMap_performance_old.csv', sep=';')
+# Load datasets
+custom_df = pd.read_csv('CustomLinkedHashMap_performance.csv', sep=';')
 native_df = pd.read_csv('LinkedHashMap_performance.csv', sep=';')
 
 # Get common columns excluding 'Size' and 'compute(K,BiFunction)'
@@ -24,8 +24,8 @@ for method in valid_cols:
     ax.plot(custom_df['Size'], custom_df[method], color=color_custom, marker='o', markersize=5, linestyle='-', linewidth=2)
     ax.plot(native_df['Size'], native_df[method], color=color_native, marker='o', markersize=5, linestyle='-', linewidth=2)
 
-    # Ensure X-axis starts exactly at 10000
-    ax.set_xlim(left=10000)
+    # UPDATED: Set X-axis range exactly from 10,000 to 100,000
+    ax.set_xlim(left=10000, right=100000)
 
     # Update text to be white for dark mode compatibility
     ax.set_title(method, fontsize=14, fontweight='bold', color='white', pad=15)
@@ -40,7 +40,7 @@ for method in valid_cols:
     for spine in ax.spines.values():
         spine.set_color('white')
 
-    # Custom Legend: Circle only, no lines through it, aligned horizontally at the bottom
+    # Custom Legend
     legend_elements = [
         Line2D([0], [0], marker='o', color='none', label='CustomLinkedHashMap',
                markerfacecolor=color_custom, markeredgecolor=color_custom, markersize=8, linestyle='None'),
@@ -48,7 +48,7 @@ for method in valid_cols:
                markerfacecolor=color_native, markeredgecolor=color_native, markersize=8, linestyle='None')
     ]
 
-    # Place legend below the X-axis using bbox_to_anchor and arrange side-by-side (ncol=2)
+    # Place legend
     legend = ax.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, -0.15),
                        fontsize=10, frameon=False, ncol=2)
     for text in legend.get_texts():
@@ -60,11 +60,11 @@ for method in valid_cols:
 
     plt.tight_layout()
 
-    # Sanitize the method name for a valid file name
+    # Sanitize the method name
     safe_filename = method.replace('(', '_').replace(')', '_').replace(',', '_').replace('.', '_')
 
-    # Save the plot (bbox_inches='tight' guarantees the bottom legend isn't clipped)
+    # Save the plot
     plt.savefig(f'plot_{safe_filename}.png', transparent=True, bbox_inches='tight')
     plt.close()
 
-print(f"Successfully generated {len(valid_cols)} performance graphs with bottom legends.")
+print(f"Successfully generated {len(valid_cols)} performance graphs with X-axis capped at 100,000.")

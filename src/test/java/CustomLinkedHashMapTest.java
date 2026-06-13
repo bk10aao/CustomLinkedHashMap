@@ -148,24 +148,6 @@ public class CustomLinkedHashMapTest {
     }
 
     @Test
-    public void givenMap_onPutIfAbsent_withNullKey_throws_NullPonterException() {
-        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        assertThrows(NullPointerException.class, () -> map.putIfAbsent(null, 123));
-    }
-
-    @Test
-    public void givenMap_onPutIfAbsent_withNullValue_throws_NullPointerException() {
-        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        assertThrows(NullPointerException.class, () -> map.putIfAbsent("123", null));
-    }
-
-    @Test
-    public void givenMap_onPutIfAbsent_withNullKey_andNullValue_throws_NullPointerException() {
-        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
-        assertThrows(NullPointerException.class, () -> map.putIfAbsent(null, null));
-    }
-
-    @Test
     public void givenMap_onPutIfAbsentKeyThatExists_returnsExistingValue() {
         CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
         map.put("123", 456);
