@@ -126,3 +126,4 @@ Note: all data is an average of 100 runs.
 ![replaceAll(BiFunction).png](PerformanceCharts/plot_replaceAll_BiFunction_.png)
 ![toString().png](PerformanceCharts/plot_toString__.png)
 ![values().png](PerformanceCharts/plot_values__.png)
+![Heatmap](PerformanceCharts/heatmap.png)
