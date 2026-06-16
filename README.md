@@ -103,7 +103,7 @@ Note: all data is an average of 100 runs.
 #### Note: The following performance charts are designed to be viewed in dark mode.
 
 ![GeometricPerformance](PerformanceCharts/geometric_performance.png)
-
+![Heatmap](PerformanceCharts/heatmap.png)
 ![clear().png](PerformanceCharts/plot_clear__.png)
 ![computeIfAbsent(K,Function).png](PerformanceCharts/plot_computeIfAbsent_K_Function_.png)
 ![computeIfPresent(K,Function).png](PerformanceCharts/plot_computeIfPresent_K_BiFunction_.png)
@@ -126,4 +126,3 @@ Note: all data is an average of 100 runs.
 ![replaceAll(BiFunction).png](PerformanceCharts/plot_replaceAll_BiFunction_.png)
 ![toString().png](PerformanceCharts/plot_toString__.png)
 ![values().png](PerformanceCharts/plot_values__.png)
-![Heatmap](PerformanceCharts/heatmap.png)
