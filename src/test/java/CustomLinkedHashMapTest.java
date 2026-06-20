@@ -98,7 +98,6 @@ public class CustomLinkedHashMapTest {
         assertNull(map.put("123", 456));
         Object value = map.get("123");
         assertEquals(value, 456);
-
         Object previous = map.put("123", 789);
         assertNotNull(previous);
         assertEquals(456, previous);
@@ -125,11 +124,9 @@ public class CustomLinkedHashMapTest {
         assertNull(map.put("123", 456));
         Object value = map.get("123");
         assertEquals(456, value);
-
         value = map.remove("123");
         assertEquals(456, value);
         assertEquals(0, map.size());
-
         value = map.get("123");
         assertNull(value);
         assertFalse(map.containsKey("123"));
@@ -141,7 +138,6 @@ public class CustomLinkedHashMapTest {
         assertNull(map.put("123", 456));
         Object value = map.get("123");
         assertEquals(456, value);
-
         value = map.remove("789");
         assertNull(value);
         assertEquals(1, map.size());
@@ -207,8 +203,7 @@ public class CustomLinkedHashMapTest {
         assertEquals(456, value);
         assertEquals(1, map.size());
         map.clear();
-        value = map.get("123");
-        assertNull(value);
+        assertNull(map.get("123"));
         assertEquals(0, map.size());
     }
 
@@ -233,7 +228,7 @@ public class CustomLinkedHashMapTest {
     @Test
     public void createMap_onGetOrDefault_withKeyValueThatDoesNotExist_returnsDefaultOf_1000() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        for (int i = 0; i < 13; i++)
+        for(int i = 0; i < 13; i++)
             map.put(i, i * 10);
         assertEquals(1000, map.getOrDefault(100, 1000));
     }
@@ -241,7 +236,7 @@ public class CustomLinkedHashMapTest {
     @Test
     public void createMap_onGetOrDefault_withKeyValueThatDoesExist_returnsValueOf_100() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
-        for (int i = 0; i < 13; i++)
+        for(int i = 0; i < 13; i++)
             map.put(i, i * 10);
         assertEquals(100, map.getOrDefault(10, 100));
     }
@@ -293,9 +288,11 @@ public class CustomLinkedHashMapTest {
     @Test
     public void createTwoNonEqualMaps_andAddingItems_onEquals_returns_false() {
         CustomLinkedHashMap map = new CustomLinkedHashMap(String.class, Integer.class);
-        for(int i = 0; i < 11; i++) map.put(String.valueOf(i), i * 10);
+        for(int i = 0; i < 11; i++)
+            map.put(String.valueOf(i), i * 10);
         CustomLinkedHashMap mapTwo = new CustomLinkedHashMap(Integer.class, Integer.class);
-        for(int i = 0; i < 10; i++) mapTwo.put(i, i * 10);
+        for(int i = 0; i < 10; i++)
+            mapTwo.put(i, i * 10);
         assertNotEquals(map, mapTwo);
     }
 

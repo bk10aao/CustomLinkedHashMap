@@ -168,28 +168,33 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         Set<Map.Entry<K, V>> es = cachedEntrySet;
         if(es == null) {
             es = new AbstractSet<>() {
-                @Override public int size() {
+                @Override
+                public int size() {
                     return size;
                 }
 
-                @Override public void clear() {
+                @Override
+                public void clear() {
                     CustomLinkedHashMap.this.clear();
                 }
 
-                @Override public boolean contains(final Object o) {
-                    if (!(o instanceof Map.Entry<?, ?> e))
+                @Override
+                public boolean contains(final Object o) {
+                    if(!(o instanceof Map.Entry<?, ?> e))
                         return false;
                     V val = get(e.getKey());
                     return val != null && Objects.equals(val, e.getValue());
                 }
 
-                @Override public boolean remove(final Object o) {
-                    if (!(o instanceof Map.Entry<?, ?> e))
+                @Override
+                public boolean remove(final Object o) {
+                    if(!(o instanceof Map.Entry<?, ?> e))
                         return false;
                     return CustomLinkedHashMap.this.remove(e.getKey(), e.getValue());
                 }
 
-                @Override public Iterator<Map.Entry<K, V>> iterator() {
+                @Override
+                public Iterator<Map.Entry<K, V>> iterator() {
                     return new EntryIterator();
                 }
             };
@@ -586,7 +591,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
             if(entry.hash == h && Objects.equals(key, entry.key)) {
                 V oldValue = entry.value;
                 entry.value = value;
-                if (accessOrder)
+                if(accessOrder)
                     moveToTail(entry);
                 return oldValue;
             }
@@ -680,11 +685,13 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
         Collection<V> valuesSet = cachedValues;
         if(valuesSet == null) {
             valuesSet = new AbstractCollection<>() {
-                @Override public int size() {
+                @Override
+                public int size() {
                     return size;
                 }
 
-                @Override public void clear() {
+                @Override
+                public void clear() {
                     CustomLinkedHashMap.this.clear();
                 }
 
@@ -693,7 +700,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
                     return containsValue(o);
                 }
 
-                @Override public Iterator<V> iterator() {
+                @Override
+                public Iterator<V> iterator() {
                     return new ValueIterator();
                 }
             };
@@ -893,7 +901,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
     private V putVal(final int h, final K key, final V value) {
         validateTypes(key, value);
         int index = getIndex(h);
-        for(Entry<K, V> entry = table[index]; entry != null; entry = entry.next) {
+        for(Entry<K, V> entry = table[index]; entry != null; entry = entry.next)
             if(entry.hash == h && Objects.equals(key, entry.key)) {
                 V oldValue = entry.value;
                 entry.value = value;
@@ -901,7 +909,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
                     moveToTail(entry);
                 return oldValue;
             }
-        }
         Entry<K, V> newEntry = new Entry<>(h, key, value, table[index]);
         table[index] = newEntry;
         linkTail(newEntry);
