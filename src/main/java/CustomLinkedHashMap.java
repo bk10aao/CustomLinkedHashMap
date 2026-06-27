@@ -107,10 +107,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V>, Serializable {
      * pointers of the internal doubly-linked list will be unlinked.
      */
     public void clear() {
+        if(size == 0)
+            return;
         size = 0;
-        Entry<K, V>[] tab = table;
-        if(tab != null)
-            Arrays.fill(tab, null);
+        Arrays.fill(table, null);
         head = null;
         tail = null;
     }

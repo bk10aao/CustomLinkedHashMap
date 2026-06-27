@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -22,6 +23,12 @@ public class CustomLinkedHashMapTest {
     @Test
     public void createEmptyMap_returnsMapOfSize_0() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertEquals(0, map.size());
+    }
+
+    @Test
+    public void createEmptyMap_OfMaxSize_10_returnsMapOfSize_0() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class, 10);
         assertEquals(0, map.size());
     }
 
@@ -55,6 +62,12 @@ public class CustomLinkedHashMapTest {
     public void createMap_withNoValues_onGetKey_abc_returns_null() {
         CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
         assertNull(map.get("abc"));
+    }
+
+    @Test
+    public void createMap_onGetKey_null_returns_false() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
+        assertNull(map.get(null));
     }
 
     @Test
@@ -113,9 +126,22 @@ public class CustomLinkedHashMapTest {
     }
 
     @Test
+    public void createMapOfKeyValue_String_String_onContainsKey_ofType_Null_returnsFalse() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
+        assertFalse(map.containsKey(null));
+    }
+
+    @Test
     public void createMapOfKeyValue_String_String_onContainsKey_ofType_Integer_returnsFalse() {
         CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
         assertFalse(map.containsKey(1));
+    }
+
+    @Test
+    public void createMapOfKeyValue_String_String_withOneValue_onContainsKey_NONEXISTENT_returnsFalse() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(String.class, String.class);
+        map.put("1", "1");
+        assertFalse(map.containsKey("NONEXISTENT"));
     }
 
     @Test
@@ -493,6 +519,14 @@ public class CustomLinkedHashMapTest {
     }
 
     @Test
+    public void giveEmpty_onClear_mapRemainsEmpty() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertTrue(map.isEmpty());
+        map.clear();
+        assertTrue(map.isEmpty());
+    }
+
+    @Test
     public void givenMapWithEntries_onClear_thenIsEmpty_returnsTrue() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
         map.put(1, 100);
@@ -626,5 +660,119 @@ public class CustomLinkedHashMapTest {
         assertEquals(2, keyIterator.next());
         assertEquals(3, keyIterator.next());
         assertEquals(1, keyIterator.next());
+    }
+
+    @Test
+    public void givenEmptyMap_onHashCode_returns_0() {
+        CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        assertEquals(0, map.hashCode());
+    }
+
+    @Test
+    public void testHashCodeMatchesStandardMapContract() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        map.put("One", 1);
+        map.put("Two", 2);
+        map.put("Three", 3);
+        int expectedHashCode = 0;
+        for (Map.Entry<String, Integer> entry : map.entrySet())
+            expectedHashCode += entry.hashCode();
+        assertEquals(expectedHashCode, map.hashCode());
+    }
+
+    @Test
+    public void testHashCodeIsOrderIndependent() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        CustomLinkedHashMap<String, Integer> map2 = new CustomLinkedHashMap<>(String.class, Integer.class);
+        map.put("A", 100);
+        map.put("B", 200);
+        map2.put("B", 200);
+        map2.put("A", 100);
+        assertEquals(map.hashCode(), map2.hashCode());
+    }
+
+    @Test
+    public void testPutAllTriggersCapacityGrowthAndTableResize() {
+        CustomLinkedHashMap<Integer, Integer> targetMap = new CustomLinkedHashMap<>(Integer.class, Integer.class);
+        Map<Integer, Integer> sourceMap = new java.util.HashMap<>();
+        for (int i = 0; i < 25; i++)
+            sourceMap.put(i, i);
+        assertDoesNotThrow(() -> targetMap.putAll(sourceMap));
+        assertEquals(25, targetMap.size());
+        for (int i = 0; i < 25; i++)
+            assertEquals(i, targetMap.get(i));
+    }
+
+    @Test
+    public void testReplaceAllSuccessfullyTransformsValues() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        map.put("A", 10);
+        map.put("B", 20);
+        map.replaceAll((key, value) -> value * 2);
+        assertEquals(2, map.size());
+        assertEquals(20, map.get("A"));
+        assertEquals(40, map.get("B"));
+    }
+
+    @Test
+    public void testReplaceAllThrowsNullPointerExceptionOnNullFunction() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        map.put("A", 10);
+        assertThrows(NullPointerException.class, () -> map.replaceAll(null));
+    }
+
+    @Test
+    public void testReplaceAllThrowsNullPointerExceptionOnNullFunctionResult() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        map.put("A", 10);
+        map.put("B", 20);
+        assertThrows(NullPointerException.class, () -> map.replaceAll((key, value) -> {
+            if ("B".equals(key))
+                return null;
+            return value;
+        }));
+        assertEquals(10, map.get("A"), "First entry value was modified or retained depending on iteration execution flow.");
+        assertEquals(20, map.get("B"), "The entry that caused the null return should remain untouched.");
+    }
+
+    @Test
+    public void testReplaceAllExecutesInCorrectIterationOrder() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class, 10, true);
+        map.put("First", 1);
+        map.put("Second", 2);
+        map.put("Third", 3);
+        map.get("Second");
+        StringBuilder trackingSequence = new StringBuilder();
+        map.replaceAll((key, value) -> {
+            trackingSequence.append(key).append("->");
+            return value + 100;
+        });
+        String expectedSequence = "First->Third->Second->";
+        assertEquals(expectedSequence, trackingSequence.toString());
+        assertEquals(101, map.get("First"));
+        assertEquals(103, map.get("Third"));
+        assertEquals(102, map.get("Second"));
+    }
+
+    @Test
+    public void testRemoveEntryDeepInBucketCollisionChain() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        map.put("A", 100);
+        map.put("B", 200);
+        assertEquals(100, map.remove("A"));
+        assertEquals(1, map.size());
+        assertFalse(map.containsKey("A"));
+        assertTrue(map.containsKey("B"));
+        assertEquals(200, map.get("B"));
+    }
+
+    @Test
+    public void testRemoveTraversesEntireCollisionChainWithoutFindingKey() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(String.class, Integer.class);
+        map.put("A", 100);
+        map.put("B", 200);
+        Integer removedValue = map.remove("not-present");
+        assertNull(removedValue);
+        assertEquals(2, map.size());
     }
 }
