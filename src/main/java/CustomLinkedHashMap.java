@@ -10,8 +10,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * A specialized hash table and doubly-linked list-based implementation of the {@link Map} interface.
  * <p>Unlike standard map implementations, this class manages its own hash table array and
@@ -55,8 +53,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
     private transient Entry<K, V> tail;
 
     public CustomLinkedHashMap(final Class<K> keyType, final Class<V> valueType, final int maxEntries, final boolean accessOrder) {
-        this.keyType = requireNonNull(keyType);
-        this.valueType = requireNonNull(valueType);
+        this.keyType = Objects.requireNonNull(keyType);
+        this.valueType = Objects.requireNonNull(valueType);
         if(maxEntries <= 0)
             throw new IllegalArgumentException("Maximum entries must be greater than zero.");
         this.maxEntries = maxEntries;
@@ -407,9 +405,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * function results in a null value
      */
     public void replaceAll(final BiFunction<? super K, ? super V, ? extends V> function) {
-        requireNonNull(function);
+        Objects.requireNonNull(function);
         for(Entry<K, V> entry = head; entry != null; entry = entry.after)
-            entry.value = requireNonNull(function.apply(entry.key, entry.value));
+            entry.value = Objects.requireNonNull(function.apply(entry.key, entry.value));
     }
 
     /**
@@ -460,7 +458,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @throws ClassCastException if the key type is incompatible with this map's defined tokens
      */
     public V remove(final Object key) {
-        requireNonNull(key);
+        Objects.requireNonNull(key);
         if (!keyType.isInstance(key))
             throw new ClassCastException();
         int h = hash(key);
@@ -561,8 +559,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * or if either parameter is null with this map's defined tokens, or if either parameter is null
      */
     public V replace(final K key, final V value) {
-        requireNonNull(key);
-        requireNonNull(value);
+        Objects.requireNonNull(key);
+        Objects.requireNonNull(value);
         validateTypes(key, value);
         int h = hash(key);
         for(Entry<K, V> entry = table[getIndex(h)]; entry != null; entry = entry.next)
@@ -595,9 +593,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * are incompatible with this map's defined tokens
      */
     public boolean replace(final K key, final V oldValue, final V newValue) {
-        requireNonNull(key);
-        requireNonNull(oldValue);
-        requireNonNull(newValue);
+        Objects.requireNonNull(key);
+        Objects.requireNonNull(oldValue);
+        Objects.requireNonNull(newValue);
         if(!this.valueType.isInstance(oldValue))
             throw new ClassCastException();
         validateTypes(key, newValue);
@@ -707,8 +705,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @throws IllegalArgumentException if {@code maxEntries < 0}
      */
     private CustomLinkedHashMap(final Class<K> keyType, final Class<V> valueType, final int maxEntries, final float loadFactor, final boolean accessOrder) {
-        this.keyType = requireNonNull(keyType);
-        this.valueType = requireNonNull(valueType);
+        this.keyType = Objects.requireNonNull(keyType);
+        this.valueType = Objects.requireNonNull(valueType);
         if(maxEntries <= 0)
             throw new IllegalArgumentException();
         this.maxEntries = maxEntries;
@@ -777,7 +775,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
 
         public V setValue(final V newValue) {
             V old = value;
-            this.value = requireNonNull(newValue);
+            this.value = Objects.requireNonNull(newValue);
             return old;
         }
 
