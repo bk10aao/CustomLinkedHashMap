@@ -7,12 +7,10 @@ import java.util.Random;
 
 public class LinkedHashMapPerformanceTest {
 
-    // Controls how many iterations are used to compute a stable average
     private static final int ITERATIONS = 100;
     private static final int STRUCTURAL_ITERATIONS = 10;
     private static final int WARMUP_RUNS = 20000;
 
-    // Blackholes to ensure JVM doesn't optimize away calls
     private static long longBlackhole = 0;
     private static boolean boolBlackhole = false;
     private static int intBlackhole = 0;
@@ -32,30 +30,29 @@ public class LinkedHashMapPerformanceTest {
             int size = sizes[i];
             System.out.println("Benchmarking size: " + size);
 
-            // Exactly 23 methods accounted for:
-            long putTime = benchmarkPut(size, random);                                 // 1
-            long getTime = benchmarkGet(size, random);                                 // 2
-            long getOrDefaultTime = benchmarkGetOrDefault(size, random);               // 3
-            long removeTime = benchmarkRemove(size, random);                           // 4
-            long removeWithValueTime = benchmarkRemoveWithValue(size, random);         // 5
-            long containsKeyTime = benchmarkContainsKey(size, random);                 // 6
-            long containsValueTime = benchmarkContainsValue(size, random);             // 7
-            long putIfAbsentTime = benchmarkPutIfAbsent(size, random);                 // 8
-            long replaceTime = benchmarkReplace(size, random);                         // 9
-            long replaceWithOldNewTime = benchmarkReplaceWithOldNew(size, random);     // 10
-            long keySetTime = benchmarkKeySet(size);                                   // 11
-            long valuesTime = benchmarkValues(size);                                   // 12
-            long clearTime = benchmarkClear(size);                                     // 13
-            long equalsTime = benchmarkEquals(size);                                   // 14
-            long toStringTime = benchmarkToString(size);                               // 15
-            long entrySetTime = benchmarkEntrySet(size);                               // 16
-            long putAllTime = benchmarkPutAll(size, random);                           // 17
-            long computeTime = benchmarkCompute(size, random);                         // 18
-            long computeIfAbsentTime = benchmarkComputeIfAbsent(size, random);         // 19
-            long computeIfPresentTime = benchmarkComputeIfPresent(size, random);       // 20
-            long forEachTime = benchmarkForEach(size);                                 // 21
-            long mergeTime = benchmarkMerge(size, random);                             // 22
-            long replaceAllTime = benchmarkReplaceAll(size);                           // 23
+            long putTime = benchmarkPut(size, random);
+            long getTime = benchmarkGet(size, random);
+            long getOrDefaultTime = benchmarkGetOrDefault(size, random);
+            long removeTime = benchmarkRemove(size, random);
+            long removeWithValueTime = benchmarkRemoveWithValue(size, random);
+            long containsKeyTime = benchmarkContainsKey(size, random);
+            long containsValueTime = benchmarkContainsValue(size, random);
+            long putIfAbsentTime = benchmarkPutIfAbsent(size, random);
+            long replaceTime = benchmarkReplace(size, random);
+            long replaceWithOldNewTime = benchmarkReplaceWithOldNew(size, random);
+            long keySetTime = benchmarkKeySet(size);
+            long valuesTime = benchmarkValues(size);
+            long clearTime = benchmarkClear(size);
+            long equalsTime = benchmarkEquals(size);
+            long toStringTime = benchmarkToString(size);
+            long entrySetTime = benchmarkEntrySet(size);
+            long putAllTime = benchmarkPutAll(size, random);
+            long computeTime = benchmarkCompute(size, random);
+            long computeIfAbsentTime = benchmarkComputeIfAbsent(size, random);
+            long computeIfPresentTime = benchmarkComputeIfPresent(size, random);
+            long forEachTime = benchmarkForEach(size);
+            long mergeTime = benchmarkMerge(size, random);
+            long replaceAllTime = benchmarkReplaceAll(size);
 
             results[i] = new long[]{
                     size, putTime, getTime, getOrDefaultTime, removeTime, removeWithValueTime,
@@ -93,7 +90,6 @@ public class LinkedHashMapPerformanceTest {
         System.gc();
     }
 
-    // 1. put(K,V)
     private static long benchmarkPut(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
@@ -106,7 +102,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 2. get(K)
     private static long benchmarkGet(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -121,7 +116,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 3. getOrDefault(K,V)
     private static long benchmarkGetOrDefault(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -136,7 +130,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 4. remove(K)
     private static long benchmarkRemove(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
@@ -150,7 +143,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 5. remove(K,V)
     private static long benchmarkRemoveWithValue(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
@@ -164,7 +156,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 6. containsKey(K)
     private static long benchmarkContainsKey(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -179,7 +170,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 7. containsValue(V)
     private static long benchmarkContainsValue(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -194,7 +184,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 8. putIfAbsent(K,V)
     private static long benchmarkPutIfAbsent(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
@@ -208,7 +197,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 9. replace(K,V)
     private static long benchmarkReplace(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -222,7 +210,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 10. replace(K,V,V)
     private static long benchmarkReplaceWithOldNew(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -236,7 +223,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 11. keySet()
     private static long benchmarkKeySet(int size) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -250,7 +236,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 12. values()
     private static long benchmarkValues(int size) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -264,7 +249,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 13. clear()
     private static long benchmarkClear(int size) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
@@ -277,7 +261,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 14. equals(Object o)
     private static long benchmarkEquals(int size) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map1 = new LinkedHashMap<>();
@@ -293,7 +276,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 15. toString()
     private static long benchmarkToString(int size) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -307,7 +289,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 16. entrySet()
     private static long benchmarkEntrySet(int size) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -321,7 +302,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 17. putAll(Map)
     private static long benchmarkPutAll(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
@@ -337,7 +317,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 18. compute(K,BiFunction)
     private static long benchmarkCompute(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -351,7 +330,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 19. computeIfAbsent(K,Function)
     private static long benchmarkComputeIfAbsent(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
@@ -365,7 +343,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 20. computeIfPresent(K,BiFunction)
     private static long benchmarkComputeIfPresent(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -379,7 +356,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 21. forEach(BiConsumer)
     private static long benchmarkForEach(int size) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -392,7 +368,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / STRUCTURAL_ITERATIONS;
     }
 
-    // 22. merge(K,V,BiFunction)
     private static long benchmarkMerge(int size, Random random) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
@@ -406,7 +381,6 @@ public class LinkedHashMapPerformanceTest {
         return totalElapsedTime / ITERATIONS;
     }
 
-    // 23. replaceAll(BiFunction)
     private static long benchmarkReplaceAll(int size) {
         long totalElapsedTime = 0;
         LinkedHashMap<Integer, String> map = new LinkedHashMap<>();
