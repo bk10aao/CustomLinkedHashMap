@@ -3,30 +3,37 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load data files
-clhm_df = pd.read_csv('CustomLinkedHashMap_performance.csv', sep=';')
-lhm_df = pd.read_csv('LinkedHashMap_performance.csv', sep=';')
+# Load CSV files (which are in wide format: Size + operation columns)
+clhm_df = pd.read_csv('CustomLinkedHashMap_jmh_performance.csv', sep=';')
+lhm_df = pd.read_csv('LinkedHashMap_jmh_performance.csv', sep=';')
 
-# Clean columns
 clhm_df.columns = [c.replace('"', '').strip() for c in clhm_df.columns]
 lhm_df.columns = [c.replace('"', '').strip() for c in lhm_df.columns]
 
-sizes = clhm_df['Size'].tolist()
-methods = [c for c in clhm_df.columns if c != 'Size']
+# Melt the data frames from wide to long format
+clhm_melted = clhm_df.melt(id_vars=['Size'], var_name='Benchmark', value_name='Score (ns/op)')
+lhm_melted = lhm_df.melt(id_vars=['Size'], var_name='Benchmark', value_name='Score (ns/op)')
 
-heatmap_data = np.zeros((len(methods), len(sizes)))
+# Pivot into wide-format matrices (Benchmarks x Sizes)
+clhm_pivot = clhm_melted.pivot(index='Benchmark', columns='Size', values='Score (ns/op)')
+lhm_pivot = lhm_melted.pivot(index='Benchmark', columns='Size', values='Score (ns/op)')
+
+# Align sizes and find common methods present in both dataframes
+sizes = sorted([int(s) for s in clhm_pivot.columns])
+common_methods = [m for m in clhm_pivot.index if m in lhm_pivot.index]
+
+heatmap_data = np.zeros((len(common_methods), len(sizes)))
 text_labels = []
 
-for i, m in enumerate(methods):
+for i, m in enumerate(common_methods):
     row_labels = []
     for j, size in enumerate(sizes):
-        clhm_val = clhm_df.loc[clhm_df['Size'] == size, m].values[0]
-        lhm_val = lhm_df.loc[lhm_df['Size'] == size, m].values[0]
+        clhm_val = clhm_pivot.loc[m, size] if size in clhm_pivot.columns else np.nan
+        lhm_val = lhm_pivot.loc[m, size] if size in lhm_pivot.columns else np.nan
 
-        if clhm_val == 0: clhm_val = 1
-        if lhm_val == 0: lhm_val = 1
+        if pd.isna(clhm_val) or clhm_val == 0: clhm_val = 1.0
+        if pd.isna(lhm_val) or lhm_val == 0: lhm_val = 1.0
 
-        # Log2 ratio: positive means Custom is faster (JDK LinkedHashMap took longer)
         ratio = np.log2(lhm_val / clhm_val)
         heatmap_data[i, j] = ratio
 
@@ -46,13 +53,16 @@ for i, m in enumerate(methods):
 
 text_labels = np.array(text_labels)
 
+# Clean up method names for display
+display_methods = [m.replace('benchmark', '') for m in common_methods]
+
 # Sort methods by average performance ratio
 avg_ratios = np.mean(heatmap_data, axis=1)
 sorted_idx = np.argsort(avg_ratios)
 
 heatmap_data = heatmap_data[sorted_idx]
 text_labels = text_labels[sorted_idx]
-sorted_methods = [methods[idx] for idx in sorted_idx]
+sorted_methods = [display_methods[idx] for idx in sorted_idx]
 
 # Plotting the heatmap
 fig, ax = plt.subplots(figsize=(16, 14), facecolor='none')
@@ -71,15 +81,15 @@ sns.heatmap(clipped_data,
             yticklabels=sorted_methods,
             ax=ax,
             cbar_kws={
-                'label': '← JDK Faster (LinkedHashMap)  |  Relative Speedup Scale (Clipped at 16x)  |  Custom Faster (CustomLinkedHashMap) →'},
+                'label': '← JDK Faster  |  Relative Speedup Scale (Clipped at 16x)  |  Custom Faster →'},
             linewidths=0.6,
             linecolor='#444444',
             annot_kws={'size': 9, 'weight': 'bold'})
 
 ax.set_title(
-    'Java LinkedHashMap Performance Comparison Matrix Heatmap\n(Positive/Blue = CustomLinkedHashMap Faster, Negative/Red = LinkedHashMap Faster)',
+    'Comparison Matrix Heatmap\n(Positive/Blue = Custom Faster, Negative/Red = JDK Faster)',
     color='#ffffff', fontsize=16, fontweight='bold', pad=20)
-ax.set_ylabel('Map Interface Methods', color='#aaaaaa', fontsize=13, labelpad=10)
+ax.set_ylabel('Benchmark Operations', color='#aaaaaa', fontsize=13, labelpad=10)
 ax.set_xlabel('Collection Size (Elements)', color='#aaaaaa', fontsize=13, labelpad=10)
 
 ax.tick_params(colors='#ffffff', labelsize=11)
@@ -94,8 +104,3 @@ cbar.ax.yaxis.label.set_fontsize(12)
 plt.tight_layout()
 plt.savefig('heatmap.png', dpi=300, transparent=True)
 plt.close()
-
-print("LinkedHashMap performance heatmap generated successfully!")
-print("Min log2 ratio:", np.min(heatmap_data))
-print("Max log2 ratio:", np.max(heatmap_data))
-print("Sorted methods:", sorted_methods)
