@@ -25,7 +25,8 @@ common_sizes = sorted(list(set(custom_pivot.index).intersection(set(jdk_pivot.in
 custom_pivot = custom_pivot.loc[common_sizes]
 jdk_pivot = jdk_pivot.loc[common_sizes]
 
-benchmarks = [b for b in custom_pivot.columns if b in jdk_pivot.columns]
+# Exclude putIfAbsent from benchmarks
+benchmarks = [b for b in custom_pivot.columns if b in jdk_pivot.columns and 'putIfAbsent' not in b]
 
 custom_fixed = custom_pivot.copy()
 jdk_fixed = jdk_pivot.copy()
@@ -174,4 +175,4 @@ for spine in ax.spines.values():
 plt.tight_layout()
 plt.savefig('geometric.png', dpi=300, transparent=True)
 plt.close()
-print('Generated corrected geometric comparison graph for LinkedHashMap successfully!')
+print('Generated corrected geometric comparison graph excluding putIfAbsent successfully!')
