@@ -69,7 +69,7 @@ public class CustomLinkedHashMapPerformanceTest {
     }
 
     private static void runGlobalWarmup(Random random) {
-        CustomLinkedHashMap<Integer, String> warmMap = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> warmMap = new CustomLinkedHashMap<>();
         for (int i = 0; i < WARMUP_RUNS; i++) {
             warmMap.put(i, "Warm" + i);
             boolBlackhole ^= warmMap.containsKey(i);
@@ -92,7 +92,7 @@ public class CustomLinkedHashMapPerformanceTest {
     private static long benchmarkPut(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
             populateMap(map, size - 1);
             long start = System.nanoTime();
             map.put(random.nextInt(size * 2), "NewValue");
@@ -103,7 +103,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkGet(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             int key = random.nextInt(size);
@@ -117,7 +117,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkGetOrDefault(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             int key = random.nextInt(size * 2);
@@ -132,7 +132,7 @@ public class CustomLinkedHashMapPerformanceTest {
     private static long benchmarkRemove(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
             populateMap(map, size);
             int key = random.nextInt(size);
             long start = System.nanoTime();
@@ -145,7 +145,7 @@ public class CustomLinkedHashMapPerformanceTest {
     private static long benchmarkRemoveWithValue(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
             populateMap(map, size);
             int key = random.nextInt(size);
             long start = System.nanoTime();
@@ -157,7 +157,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkContainsKey(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             int key = random.nextInt(size * 2);
@@ -171,7 +171,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkContainsValue(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             String val = "Value" + random.nextInt(size * 2);
@@ -186,7 +186,7 @@ public class CustomLinkedHashMapPerformanceTest {
     private static long benchmarkPutIfAbsent(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
             populateMap(map, size);
             int key = random.nextInt(size * 2);
             long start = System.nanoTime();
@@ -198,7 +198,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkReplace(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             int key = random.nextInt(size * 2);
@@ -211,7 +211,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkReplaceWithOldNew(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             int key = random.nextInt(size);
@@ -224,7 +224,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkKeySet(int size) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             long start = System.nanoTime();
@@ -237,7 +237,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkValues(int size) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             long start = System.nanoTime();
@@ -251,7 +251,7 @@ public class CustomLinkedHashMapPerformanceTest {
     private static long benchmarkClear(int size) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
             populateMap(map, size);
             long start = System.nanoTime();
             map.clear();
@@ -262,8 +262,8 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkEquals(int size) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map1 = new CustomLinkedHashMap<>(Integer.class, String.class);
-        CustomLinkedHashMap<Integer, String> map2 = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map1 = new CustomLinkedHashMap<>();
+        CustomLinkedHashMap<Integer, String> map2 = new CustomLinkedHashMap<>();
         populateMap(map1, size);
         populateMap(map2, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
@@ -277,7 +277,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkToString(int size) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
             long start = System.nanoTime();
@@ -290,7 +290,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkEntrySet(int size) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             long start = System.nanoTime();
@@ -304,7 +304,7 @@ public class CustomLinkedHashMapPerformanceTest {
     private static long benchmarkPutAll(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
             Map<Integer, String> source = new HashMap<>();
             for (int i = 0; i < size; i++) {
                 source.put(random.nextInt(size * 2), "Value" + i);
@@ -318,7 +318,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkCompute(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             int key = random.nextInt(size * 2);
@@ -332,7 +332,7 @@ public class CustomLinkedHashMapPerformanceTest {
     private static long benchmarkComputeIfAbsent(int size, Random random) {
         long totalElapsedTime = 0;
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
-            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+            CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
             populateMap(map, size);
             int key = random.nextInt(size * 2);
             long start = System.nanoTime();
@@ -344,7 +344,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkComputeIfPresent(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             int key = random.nextInt(size * 2);
@@ -357,7 +357,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkForEach(int size) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
             long start = System.nanoTime();
@@ -369,7 +369,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkMerge(int size, Random random) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < ITERATIONS; iter++) {
             int key = random.nextInt(size * 2);
@@ -382,7 +382,7 @@ public class CustomLinkedHashMapPerformanceTest {
 
     private static long benchmarkReplaceAll(int size) {
         long totalElapsedTime = 0;
-        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>(Integer.class, String.class);
+        CustomLinkedHashMap<Integer, String> map = new CustomLinkedHashMap<>();
         populateMap(map, size);
         for (int iter = 0; iter < STRUCTURAL_ITERATIONS; iter++) {
             long start = System.nanoTime();
