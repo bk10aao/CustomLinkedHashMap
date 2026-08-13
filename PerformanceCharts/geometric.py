@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate a geometric mean relative performance comparison chart between CustomLinkedHashMap and JDK LinkedHashMap.
-Compatible with wide-format JMH CSV performance reports.
+Compatible with wide-format JMH CSV performance reports. Capped at 1.75x on both sides.
 """
 
 import matplotlib.pyplot as plt
@@ -51,15 +51,16 @@ for b in benchmarks:
     g_custom = gmean(custom_vals)
     g_jdk = gmean(jdk_vals)
 
-    # Correct logic:
-    # If Custom is faster (g_custom < g_jdk), custom speedup factor is g_jdk / g_custom -> map to POSITIVE side (Right: Custom Faster)
-    # If JDK is faster (g_jdk < g_custom), JDK speedup factor is g_custom / g_jdk -> map to NEGATIVE side (Left: JDK Faster)
     if g_custom < g_jdk:
         speedup = g_jdk / g_custom
+        # Clip speedup factor at 1.75 max
+        speedup = min(speedup, 1.75)
         ratios.append(speedup - 1)
         colors.append(custom_win_color)
     else:
         speedup = g_custom / g_jdk
+        # Clip speedup factor at 1.75 max
+        speedup = min(speedup, 1.75)
         ratios.append(-(speedup - 1))
         colors.append(jdk_win_color)
 
@@ -75,12 +76,9 @@ sorted_ratios = [ratios[idx] for idx in sorted_indices]
 sorted_labels = [labels[idx] for idx in sorted_indices]
 sorted_colors = [colors[idx] for idx in sorted_indices]
 
-min_ratio = min(sorted_ratios)
-max_ratio = max(sorted_ratios)
-
-# Extra margin on sides so annotations fit cleanly
-left_limit = min(min_ratio - 0.4, -1.2)
-right_limit = max(max_ratio + 0.4, 1.2)
+# Explicitly max out x-axis at 1.75x (-0.75 to 0.75)
+left_limit = -0.75
+right_limit = 0.75
 
 fig_height = max(6, len(sorted_labels) * 0.45)
 fig, ax = plt.subplots(figsize=(12, fig_height), facecolor='none')
@@ -97,18 +95,10 @@ ax.axvline(x=0, color='#ffffff', linewidth=1.2)
 
 ax.set_xlim(left_limit, right_limit)
 
-ticks = []
-for t in [-4.0, -3.0, -2.0, -1.0]:
-    if t >= left_limit:
-        ticks.append(t)
-ticks.append(0.0)
-for t in [1.0, 2.0, 3.0, 4.0]:
-    if t <= right_limit:
-        ticks.append(t)
-
+ticks = [-0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75]
 ax.set_xticks(ticks)
 ax.set_xticklabels(
-    [f'{abs(t) + 1:.1f}x' if abs(t) > 0.05 else 'Tie' for t in ticks],
+    ['1.75x JDK', '1.50x', '1.25x', 'Tie', '1.25x', '1.50x', '1.75x Custom'],
     color='#ffffff',
     fontsize=11,
 )
@@ -137,7 +127,7 @@ for idx, (bar, r) in enumerate(zip(bars, sorted_ratios)):
             color='#ffffff',
             fontsize=9,
             fontweight='bold',
-        )
+            )
     else:
         ax.text(
             r - 0.02,
@@ -148,11 +138,11 @@ for idx, (bar, r) in enumerate(zip(bars, sorted_ratios)):
             color='#ffffff',
             fontsize=9,
             fontweight='bold',
-        )
+            )
 
 ax.set_title(
     (
-        'Overall Relative Performance Comparison (Custom vs JDK)\n(Geometric Mean Across All Sizes)'
+        'Overall Relative Performance Comparison (Custom vs JDK)\n(Geometric Mean Across All Sizes - Capped at 1.75x)'
     ),
     fontsize=14,
     fontweight='bold',
@@ -160,7 +150,7 @@ ax.set_title(
     color='#ffffff',
 )
 ax.set_xlabel(
-    '← JDK Faster  |  Relative Speedup Factor  |  Custom Faster →',
+    '← JDK Faster  |  Relative Speedup Factor (Max 1.75x)  |  Custom Faster →',
     fontsize=12,
     labelpad=10,
     color='#ffffff',
@@ -175,4 +165,4 @@ for spine in ax.spines.values():
 plt.tight_layout()
 plt.savefig('geometric.png', dpi=300, transparent=True)
 plt.close()
-print('Generated corrected geometric comparison graph excluding putIfAbsent successfully!')
+print('Generated 1.75x-capped geometric comparison graph successfully!')
