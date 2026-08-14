@@ -92,16 +92,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @throws NullPointerException if the specified map is null
      */
     public CustomLinkedHashMap(final Map<? extends K, ? extends V> m) {
-        requireNonNull(m);
-        int initialCapacity = Math.max((int) (m.size() / 0.75f) + 1, 16);
-        this.loadFactor = 0.75f;
-        this.accessOrder = false;
-        this.maxEntries = Integer.MAX_VALUE;
-        int cap = 1;
-        while (cap < initialCapacity)
-            cap <<= 1;
-        this.table = (Entry<K, V>[]) new Entry[cap];
-        this.threshold = (int) (cap * loadFactor);
+        this(Math.max((int) (requireNonNull(m).size() / 0.75f) + 1, 16), 0.75f, false);
         putAll(m);
     }
 
@@ -191,10 +182,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
                     if (!(o instanceof Map.Entry<?, ?> e))
                         return false;
                     Object key = e.getKey();
-                    int h = hash(key);
                     Entry<K, V>[] tab = table;
                     if (tab == null || tab.length == 0)
                         return false;
+                    int h = hash(key);
                     int index = (tab.length - 1) & h;
                     for (Entry<K, V> candidate = tab[index]; candidate != null; candidate = candidate.next) {
                         if (candidate.hash == h) {
@@ -262,21 +253,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * or {@code null} if this map contains no mapping for the key
      */
     public V get(final Object key) {
-        Entry<K, V>[] tab = table;
-        if (tab == null || tab.length == 0)
-            return null;
-        int h = hash(key);
-        int index = (tab.length - 1) & h;
-        for(Entry<K, V> entry = tab[index]; entry != null; entry = entry.next)
-            if (entry.hash == h) {
-                K k = entry.key;
-                if (k == key || (key != null && key.equals(k))) {
-                    if (accessOrder)
-                        moveToTail(entry);
-                    return entry.value;
-                }
-            }
-        return null;
+        return getOrDefault(key, null);
     }
 
     /**
@@ -296,16 +273,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         if (tab == null || tab.length == 0)
             return defaultValue;
         int h = hash(key);
-        for (Entry<K, V> e = tab[(tab.length - 1) & h]; e != null; e = e.next)
-            if (e.hash == h) {
-                K k = e.key;
-                if (k == key || (key != null && key.equals(k))) {
-                    if (accessOrder)
-                        moveToTail(e);
-                    return e.value;
-                }
-            }
-        return defaultValue;
+        int index = (tab.length - 1) & h;
+        return getValue(key, defaultValue, h, tab[index]);
     }
 
     /**
@@ -423,8 +392,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @throws NullPointerException if the specified map is null
      */
     public void putAll(final Map<? extends K, ? extends V> m) {
-        if(m == null)
-            throw new NullPointerException();
+        requireNonNull(m);
         int numberElementsToBeAdded = m.size();
         if (numberElementsToBeAdded == 0)
             return;
@@ -497,25 +465,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @return the previous value associated with {@code key}, or {@code null} if there was no mapping for {@code key}
      */
     public V remove(final Object key) {
-        int h = hash(key);
         Entry<K, V>[] tab = table;
+        int h = hash(key);
         int index = (tab.length - 1) & h;
-        Entry<K, V> previous = null;
         Entry<K, V> entry = tab[index];
-        while(entry != null) {
-            if(entry.hash == h && (key == entry.key || key.equals(entry.key))) {
-                if(previous == null)
-                    tab[index] = entry.next;
-                else
-                    previous.next = entry.next;
-                unlink(entry);
-                size--;
-                return entry.value;
-            }
-            previous = entry;
-            entry = entry.next;
-        }
-        return null;
+        return remove(key, entry, h, tab, index);
     }
 
     /**
@@ -530,24 +484,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         int h = hash(key);
         Entry<K, V>[] tab = table;
         int index = (tab.length - 1) & h;
-        Entry<K, V> previous = null;
         Entry<K, V> entry = table[index];
-        while(entry != null) {
-            if(entry.hash == h && (key == entry.key || key.equals(entry.key))) {
-                if(!Objects.equals(value, entry.value))
-                    return false;
-                if(previous == null)
-                    tab[index] = entry.next;
-                else
-                    previous.next = entry.next;
-                unlink(entry);
-                size--;
-                return true;
-            }
-            previous = entry;
-            entry = entry.next;
-        }
-        return false;
+        return remove(key, value, entry, h, tab, index);
     }
 
     /**
@@ -614,17 +552,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         Entry<K, V>[] tab = table;
         int h = hash(key);
         int index = (tab.length - 1) & h;
-        for(Entry<K, V> entry = tab[index]; entry != null; entry = entry.next)
-            if (entry.hash == h && (key == entry.key || key.equals(entry.key))) {
-                if (Objects.equals(entry.value, oldValue)) {
-                    entry.value = newValue;
-                    if (accessOrder)
-                        moveToTail(entry);
-                    return true;
-                }
-                return false;
-            }
-        return false;
+        return replace(key, oldValue, newValue, h, tab[index]);
     }
 
     /**
@@ -810,6 +738,19 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
             remove(head.key);
     }
 
+    private V getValue(final Object key, final V defaultValue, final int h, final Entry<K, V> tab) {
+        for (Entry<K, V> e = tab; e != null; e = e.next)
+            if (e.hash == h) {
+                K k = e.key;
+                if (k == key || (key != null && key.equals(k))) {
+                    if (accessOrder)
+                        moveToTail(e);
+                    return e.value;
+                }
+            }
+        return defaultValue;
+    }
+
     private static int hash(final Object key) {
         int h;
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
@@ -858,6 +799,58 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
                 evictEldestIfNeeded();
             }
         }
+    }
+
+    private V remove(final Object key, Entry<K, V> entry, final int h, final Entry<K, V>[] tab, final int index) {
+        Entry<K, V> previous = null;
+        while(entry != null) {
+            if(entry.hash == h && (key == entry.key || key.equals(entry.key))) {
+                if(previous == null)
+                    tab[index] = entry.next;
+                else
+                    previous.next = entry.next;
+                unlink(entry);
+                size--;
+                return entry.value;
+            }
+            previous = entry;
+            entry = entry.next;
+        }
+        return null;
+    }
+
+    private boolean remove(final Object key, final Object value, Entry<K, V> entry, final int h, final Entry<K, V>[] tab, final int index) {
+        Entry<K, V> previous = null;
+        while(entry != null) {
+            if(entry.hash == h && (key == entry.key || key.equals(entry.key))) {
+                if(!Objects.equals(value, entry.value))
+                    return false;
+                if(previous == null)
+                    tab[index] = entry.next;
+                else
+                    previous.next = entry.next;
+                unlink(entry);
+                size--;
+                return true;
+            }
+            previous = entry;
+            entry = entry.next;
+        }
+        return false;
+    }
+
+    private boolean replace(final K key, V oldValue, final V newValue, final int h, final Entry<K, V> tab) {
+        for(Entry<K, V> entry = tab; entry != null; entry = entry.next)
+            if (entry.hash == h && (key == entry.key || key.equals(entry.key))) {
+                if (Objects.equals(entry.value, oldValue)) {
+                    entry.value = newValue;
+                    if (accessOrder)
+                        moveToTail(entry);
+                    return true;
+                }
+                return false;
+            }
+        return false;
     }
 
     private void resize(final int newCapacity) {

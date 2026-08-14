@@ -5,8 +5,11 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -515,7 +518,7 @@ public class CustomLinkedHashMapTest {
     @Test
     public void givenEmptyMap_onEntrySet_returnsEmptySet() {
         CustomLinkedHashMap<Integer, Integer> map = new CustomLinkedHashMap<>();
-        Set<Map.Entry<Integer, Integer>> entries = map.entrySet();
+        Set<Entry<Integer, Integer>> entries = map.entrySet();
         assertEquals(0, entries.size());
     }
 
@@ -560,9 +563,7 @@ public class CustomLinkedHashMapTest {
 
     @Test
     public void onInstantiatingMapAsCache_withSizeOf_negative_1_throws_IllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () ->
-                new CustomLinkedHashMap<>(-1)
-        );
+        assertThrows(IllegalArgumentException.class, () -> new CustomLinkedHashMap<>(-1));
     }
 
     @Test
@@ -584,7 +585,7 @@ public class CustomLinkedHashMapTest {
         map.put("Two", 2);
         map.put("Three", 3);
         int expectedHashCode = 0;
-        for (Map.Entry<String, Integer> entry : map.entrySet())
+        for (Entry<String, Integer> entry : map.entrySet())
             expectedHashCode += entry.hashCode();
         assertEquals(expectedHashCode, map.hashCode());
     }
@@ -664,5 +665,381 @@ public class CustomLinkedHashMapTest {
         Integer removedValue = map.remove("not-present");
         assertNull(removedValue);
         assertEquals(2, map.size());
+    }
+
+    @Test
+    void testInitialCapacityAndLoadFactorConstructorSuccess() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(32, 0.5f);
+        assertTrue(map.isEmpty());
+        assertEquals(0, map.size());
+    }
+
+    @Test
+    void testInitialCapacityAndLoadFactorConstructorNegativeCapacity() {
+        assertThrows(IllegalArgumentException.class, () -> new CustomLinkedHashMap<>(-1, 0.75f));
+    }
+
+    @Test
+    void testInitialCapacityAndLoadFactorConstructorZeroLoadFactor() {
+        assertThrows(IllegalArgumentException.class, () -> new CustomLinkedHashMap<>(16, 0.0f));
+    }
+
+    @Test
+    void testInitialCapacityAndLoadFactorConstructorNegativeLoadFactor() {
+        assertThrows(IllegalArgumentException.class, () -> new CustomLinkedHashMap<>(16, -0.5f));
+    }
+
+    @Test
+    void testInitialCapacityAndLoadFactorConstructorNaNLoadFactor() {
+        assertThrows(IllegalArgumentException.class, () -> new CustomLinkedHashMap<>(16, Float.NaN));
+    }
+
+    @Test
+    void testMapConstructorSuccess() {
+        Map<String, String> sourceMap = new CustomLinkedHashMap<>();
+        sourceMap.put("key1", "value1");
+        sourceMap.put("key2", "value2");
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(sourceMap);
+        assertEquals(2, map.size());
+        assertEquals("value1", map.get("key1"));
+        assertEquals("value2", map.get("key2"));
+    }
+
+    @Test
+    void testMapConstructorEmptyMap() {
+        Map<String, String> sourceMap = new CustomLinkedHashMap<>();
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>(sourceMap);
+        assertTrue(map.isEmpty());
+        assertEquals(0, map.size());
+    }
+
+    @Test
+    void testMapConstructorNullMapThrowsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new CustomLinkedHashMap<>(null));
+    }
+
+    @Test
+    public void testEntrySetIteratorIteratesAllEntries() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("one", 1);
+        map.put("two", 2);
+        map.put("three", 3);
+        Set<Entry<String, Integer>> entries = map.entrySet();
+        assertEquals(3, entries.size());
+        Set<String> foundKeys = new HashSet<>();
+        for (Entry<String, Integer> entry : entries) {
+            foundKeys.add(entry.getKey());
+            assertEquals(map.get(entry.getKey()), entry.getValue());
+        }
+        assertEquals(new HashSet<>(List.of("one", "two", "three")), foundKeys);
+    }
+
+    @Test
+    public void testEntrySetContainsValidAndInvalidEntries() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("key", 42);
+        Set<Entry<String, Integer>> entries = map.entrySet();
+        Entry<String, Integer> validEntry = entries.iterator().next();
+        assertTrue(entries.contains(validEntry));
+        assertFalse(entries.contains("not-an-entry"));
+        assertFalse(entries.contains(null));
+        Map<String, Integer> fakeEntryMap = new java.util.HashMap<>();
+        fakeEntryMap.put("key", 999);
+        assertFalse(entries.contains(fakeEntryMap.entrySet().iterator().next()));
+        fakeEntryMap.clear();
+        fakeEntryMap.put("missing-key", 42);
+        assertFalse(entries.contains(fakeEntryMap.entrySet().iterator().next()));
+    }
+
+    @Test
+    public void testEntrySetContainsOnEmptyOrNullTable() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        Set<Entry<String, Integer>> entries = map.entrySet();
+        Map<String, Integer> dummyEntryMap = new java.util.HashMap<>();
+        dummyEntryMap.put("any", 1);
+        assertFalse(entries.contains(dummyEntryMap.entrySet().iterator().next()));
+    }
+
+    @Test
+    public void testEntrySetRemoveSuccessfullyDeletesMatchingEntry() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("deleteMe", 100);
+        map.put("keepMe", 200);
+        Set<Entry<String, Integer>> entries = map.entrySet();
+        assertFalse(entries.remove("string-type-not-entry"));
+        assertFalse(entries.remove(null));
+        Entry<String, Integer> targetEntry = null;
+        for (Entry<String, Integer> entry : entries)
+            if ("deleteMe".equals(entry.getKey())) {
+                targetEntry = entry;
+                break;
+            }
+        assertNotNull(targetEntry);
+        assertTrue(entries.remove(targetEntry));
+        assertEquals(1, map.size());
+        assertFalse(map.containsKey("deleteMe"));
+        assertTrue(map.containsKey("keepMe"));
+    }
+
+    @Test
+    public void testEntrySetClearEmptiesUnderlyingMap() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("a", 1);
+        map.put("b", 2);
+        Set<Entry<String, Integer>> entries = map.entrySet();
+        assertEquals(2, entries.size());
+        entries.clear();
+        assertTrue(map.isEmpty());
+        assertEquals(0, entries.size());
+    }
+
+    @Test
+    public void testEntrySetCachingReturnsSameInstance() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        Set<Entry<String, Integer>> firstCall = map.entrySet();
+        Set<Entry<String, Integer>> secondCall = map.entrySet();
+        assertEquals(firstCall, secondCall);
+    }
+
+    @Test
+    public void testKeySetIteratorIteratesAllKeys() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("one", 1);
+        map.put("two", 2);
+        map.put("three", 3);
+        Set<String> keys = map.keySet();
+        assertEquals(3, keys.size());
+        Set<String> foundKeys = new HashSet<>();
+        for (String key : keys) {
+            foundKeys.add(key);
+            assertTrue(map.containsKey(key));
+        }
+        assertEquals(new HashSet<>(List.of("one", "two", "three")), foundKeys);
+    }
+
+    @Test
+    public void testKeySetContainsDelegatesCorrectly() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("presentKey", 42);
+        Set<String> keys = map.keySet();
+        assertTrue(keys.contains("presentKey"));
+        assertFalse(keys.contains("absentKey"));
+        assertFalse(keys.contains(null));
+        assertFalse(keys.contains(42));
+    }
+
+    @Test
+    public void testKeySetRemoveSuccessfullyDeletesKeyAndReturnsTrue() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("removeMe", 100);
+        map.put("stay", 200);
+        Set<String> keys = map.keySet();
+        assertFalse(keys.remove("notPresent"));
+        assertFalse(keys.remove(null));
+        assertTrue(keys.remove("removeMe"));
+        assertEquals(1, map.size());
+        assertFalse(map.containsKey("removeMe"));
+        assertTrue(map.containsKey("stay"));
+    }
+
+    @Test
+    public void testKeySetClearEmptiesUnderlyingMap() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("a", 1);
+        map.put("b", 2);
+        Set<String> keys = map.keySet();
+        assertEquals(2, keys.size());
+        keys.clear();
+        assertTrue(map.isEmpty());
+        assertEquals(0, keys.size());
+    }
+
+    @Test
+    public void testKeySetCachingReturnsSameInstance() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        Set<String> firstCall = map.keySet();
+        Set<String> secondCall = map.keySet();
+        assertEquals(firstCall, secondCall);
+    }
+
+    @Test
+    public void testAccessOrderBehaviorOnGet() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(16, 0.75f, true);
+        map.put("A", 1);
+        map.put("B", 2);
+        map.put("C", 3);
+        map.get("A");
+        Iterator<String> iterator = map.keySet().iterator();
+        assertEquals("B", iterator.next());
+        assertEquals("C", iterator.next());
+        assertEquals("A", iterator.next());
+    }
+
+    @Test
+    public void testAccessOrderBehaviorOnPutExistingKey() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(16, 0.75f, true);
+        map.put("A", 1);
+        map.put("B", 2);
+        map.put("C", 3);
+        map.put("A", 10);
+        Iterator<String> iterator = map.keySet().iterator();
+        assertEquals("B", iterator.next());
+        assertEquals("C", iterator.next());
+        assertEquals("A", iterator.next());
+    }
+
+    @Test
+    public void testInsertionOrderIsPreservedByDefault() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("A", 1);
+        map.put("B", 2);
+        map.put("C", 3);
+        map.get("A");
+        Iterator<String> iterator = map.keySet().iterator();
+        assertEquals("A", iterator.next());
+        assertEquals("B", iterator.next());
+        assertEquals("C", iterator.next());
+    }
+
+    @Test
+    public void testValuesCollectionIteratorAndSize() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("one", 10);
+        map.put("two", 20);
+        map.put("three", 30);
+        Collection<Integer> values = map.values();
+        assertEquals(3, values.size());
+        List<Integer> foundValues = new ArrayList<>();
+        for (Integer value : values) {
+            foundValues.add(value);
+            assertTrue(map.containsValue(value));
+        }
+        assertEquals(3, foundValues.size());
+        assertTrue(foundValues.contains(10));
+        assertTrue(foundValues.contains(20));
+        assertTrue(foundValues.contains(30));
+    }
+
+    @Test
+    public void testValuesCollectionContainsDelegatesCorrectly() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("key", 100);
+        Collection<Integer> values = map.values();
+        assertTrue(values.contains(100));
+        assertFalse(values.contains(999));
+        assertFalse(values.contains(null));
+    }
+
+    @Test
+    public void testValuesCollectionClearEmptiesUnderlyingMap() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        map.put("a", 1);
+        map.put("b", 2);
+        Collection<Integer> values = map.values();
+        assertEquals(2, values.size());
+        values.clear();
+        assertTrue(map.isEmpty());
+        assertEquals(0, values.size());
+    }
+
+    @Test
+    public void testValuesCollectionCachingReturnsSameInstance() {
+        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>();
+        Collection<Integer> firstCall = map.values();
+        Collection<Integer> secondCall = map.values();
+        assertEquals(firstCall, secondCall);
+    }
+
+    @Test
+    public void testMapEntryGettersAndSetValue() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>();
+        map.put("testKey", "testValue");
+        Entry<String, String> entry = map.entrySet().iterator().next();
+        assertEquals("testKey", entry.getKey());
+        assertEquals("testValue", entry.getValue());
+        String oldValue = entry.setValue("newValue");
+        assertEquals("testValue", oldValue);
+        assertEquals("newValue", entry.getValue());
+        assertEquals("newValue", map.get("testKey"));
+    }
+
+    @Test
+    public void testMapEntryEqualsContract() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>();
+        map.put("key1", "value1");
+        Entry<String, String> entry = map.entrySet().iterator().next();
+        assertEquals(entry, entry);
+        assertNotEquals("not-an-entry", entry);
+        Map<String, String> standardMap = new java.util.HashMap<>();
+        standardMap.put("key1", "value1");
+        Entry<String, String> standardEntry = standardMap.entrySet().iterator().next();
+        assertEquals(entry, standardEntry);
+        Map<String, String> diffMap = new java.util.HashMap<>();
+        diffMap.put("key1", "differentValue");
+        assertNotEquals(entry, diffMap.entrySet().iterator().next());
+    }
+
+    @Test
+    public void testMapEntryHashCodeContract() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>();
+        map.put("key1", "value1");
+        Entry<String, String> entry = map.entrySet().iterator().next();
+        Map<String, String> standardMap = new java.util.HashMap<>();
+        standardMap.put("key1", "value1");
+        Entry<String, String> standardEntry = standardMap.entrySet().iterator().next();
+        assertEquals(standardEntry.hashCode(), entry.hashCode());
+    }
+
+    @Test
+    public void testMapEntryToStringFormat() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>();
+        map.put("myKey", "myValue");
+        Entry<String, String> entry = map.entrySet().iterator().next();
+        assertEquals("myKey=myValue", entry.toString());
+    }
+
+    @Test
+    public void testIteratorThrowsNoSuchElementExceptionWhenExhausted() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>();
+        map.put("key1", "value1");
+        Iterator<String> iterator = map.keySet().iterator();
+        assertTrue(iterator.hasNext());
+        assertEquals("key1", iterator.next());
+        assertFalse(iterator.hasNext());
+        assertThrows(NoSuchElementException.class, iterator::next);
+    }
+
+    @Test
+    public void testIteratorRemoveSuccessfullyDeletesCurrentElement() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        Iterator<Entry<String, String>> iterator = map.entrySet().iterator();
+        assertTrue(iterator.hasNext());
+        Entry<String, String> entry = iterator.next();
+        assertEquals("key1", entry.getKey());
+        iterator.remove();
+        assertEquals(1, map.size());
+        assertFalse(map.containsKey("key1"));
+        assertTrue(map.containsKey("key2"));
+    }
+
+    @Test
+    public void testIteratorRemoveThrowsIllegalStateExceptionWhenCalledBeforeNext() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>();
+        map.put("key1", "value1");
+        Iterator<String> iterator = map.keySet().iterator();
+        assertThrows(IllegalStateException.class, iterator::remove);
+    }
+
+    @Test
+    public void testIteratorRemoveThrowsIllegalStateExceptionWhenCalledTwiceConcurrently() {
+        CustomLinkedHashMap<String, String> map = new CustomLinkedHashMap<>();
+        map.put("key1", "value1");
+        Iterator<String> iterator = map.keySet().iterator();
+        assertTrue(iterator.hasNext());
+        assertEquals("key1", iterator.next());
+        iterator.remove();
+        assertThrows(IllegalStateException.class, iterator::remove);
     }
 }
