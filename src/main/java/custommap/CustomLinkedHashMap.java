@@ -92,7 +92,16 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @throws NullPointerException if the specified map is null
      */
     public CustomLinkedHashMap(final Map<? extends K, ? extends V> m) {
-        this(Math.max((int) (m.size() / 0.75f) + 1, 16), 0.75f, false);
+        requireNonNull(m);
+        int initialCapacity = Math.max((int) (m.size() / 0.75f) + 1, 16);
+        this.loadFactor = 0.75f;
+        this.accessOrder = false;
+        this.maxEntries = Integer.MAX_VALUE;
+        int cap = 1;
+        while (cap < initialCapacity)
+            cap <<= 1;
+        this.table = (Entry<K, V>[]) new Entry[cap];
+        this.threshold = (int) (cap * loadFactor);
         putAll(m);
     }
 
@@ -134,7 +143,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
     public boolean containsKey(final Object key) {
         Entry<K, V>[] tab = table;
         int h = hash(key);
-        int index = h & (tab.length - 1);
+        int index = (tab.length - 1) & h;
         for(Entry<K, V> entry = tab[index]; entry != null; entry = entry.next)
             if(entry.hash == h && (key == entry.key || key.equals(entry.key)))
                 return true;
@@ -257,7 +266,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         if (tab == null || tab.length == 0)
             return null;
         int h = hash(key);
-        for(Entry<K, V> entry = tab[h & (tab.length - 1)]; entry != null; entry = entry.next)
+        int index = (tab.length - 1) & h;
+        for(Entry<K, V> entry = tab[index]; entry != null; entry = entry.next)
             if (entry.hash == h) {
                 K k = entry.key;
                 if (k == key || (key != null && key.equals(k))) {
@@ -347,7 +357,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
                     CustomLinkedHashMap.this.clear();
                 }
 
-                public boolean contains(Object o) {
+                public boolean contains(final Object o) {
                     return containsKey(o);
                 }
 
@@ -355,7 +365,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
                     return new KeyIterator();
                 }
 
-                public boolean remove(Object o) {
+                public boolean remove(final Object o) {
                     return CustomLinkedHashMap.this.remove(o) != null;
                 }
 
@@ -603,7 +613,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         requireNonNull(newValue);
         Entry<K, V>[] tab = table;
         int h = hash(key);
-        int index = h & (tab.length - 1);
+        int index = (tab.length - 1) & h;
         for(Entry<K, V> entry = tab[index]; entry != null; entry = entry.next)
             if (entry.hash == h && (key == entry.key || key.equals(entry.key))) {
                 if (Objects.equals(entry.value, oldValue)) {
@@ -830,7 +840,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         tail = node;
     }
 
-    private void populate(Map<? extends K, ? extends V> m) {
+    private void populate(final Map<? extends K, ? extends V> m) {
         for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
             K key = entry.getKey();
             V value = entry.getValue();
