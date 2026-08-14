@@ -33,9 +33,15 @@ import static java.util.Objects.requireNonNull;
  */
 public class CustomLinkedHashMap<K, V> implements Map<K, V> {
 
-
     private transient Set<K> cachedKeySet;
     private transient Set<Map.Entry<K, V>> cachedEntrySet;
+
+    private transient Entry<K, V>[] table;
+    private transient Entry<K, V> head;
+    private transient Entry<K, V> tail;
+
+    private transient int size;
+    private transient int threshold;
 
     private transient Collection<V> cachedValues;
 
@@ -43,25 +49,51 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
 
     private final int maxEntries;
 
-    private transient int size;
-    private transient int threshold;
+    private final float loadFactor;
 
-    private float loadFactor = 0.75f;
-
-    private transient Entry<K, V>[] table;
-    private transient Entry<K, V> head;
-    private transient Entry<K, V> tail;
-
+    /**
+     * Constructs an empty {@code CustomLinkedHashMap} with the default initial capacity (16),
+     * load factor (0.75), and ordering mode (insertion-order).
+     */
     public CustomLinkedHashMap() {
         this(16, 0.75f, false);
     }
 
+    /**
+     * Constructs an empty {@code CustomLinkedHashMap} with the specified initial capacity,
+     * default load factor (0.75), and insertion-order mode.
+     *
+     * @param initialCapacity the initial capacity
+     * @throws IllegalArgumentException if the initial capacity is negative
+     */
     public CustomLinkedHashMap(final int initialCapacity) {
         this(initialCapacity, 0.75f, false);
     }
 
+    /**
+     * Constructs an empty {@code CustomLinkedHashMap} with the specified initial capacity
+     * and load factor, operating in insertion-order mode.
+     *
+     * @param initialCapacity the initial capacity
+     * @param loadFactor the load factor
+     * @throws IllegalArgumentException if the initial capacity is negative
+     * or the load factor is non-positive or NaN
+     */
     public CustomLinkedHashMap(final int initialCapacity, final float loadFactor) {
         this(initialCapacity, loadFactor, false);
+    }
+
+    /**
+     * Constructs a new {@code CustomLinkedHashMap} with the same mappings as the specified map.
+     * The map is created with an initial capacity sufficient to hold the mappings in the
+     * specified map under a default load factor of 0.75, and operates in insertion-order mode.
+     *
+     * @param m the map whose mappings are to be placed in this map
+     * @throws NullPointerException if the specified map is null
+     */
+    public CustomLinkedHashMap(final Map<? extends K, ? extends V> m) {
+        this(Math.max((int) (m.size() / 0.75f) + 1, 16), 0.75f, false);
+        putAll(m);
     }
 
     public CustomLinkedHashMap(final int initialCapacity, final float loadFactor, final boolean accessOrder) {
@@ -69,22 +101,14 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
             throw new IllegalArgumentException("Initial capacity must not be negative: " + initialCapacity);
         if (loadFactor <= 0 || Float.isNaN(loadFactor))
             throw new IllegalArgumentException("Illegal load factor: " + loadFactor);
-
         this.loadFactor = loadFactor;
         this.accessOrder = accessOrder;
         this.maxEntries = Integer.MAX_VALUE;
-
         int cap = 1;
         while (cap < initialCapacity)
             cap <<= 1;
-
         this.table = (Entry<K, V>[]) new Entry[cap];
         this.threshold = (int) (cap * loadFactor);
-    }
-
-    public CustomLinkedHashMap(final Map<? extends K, ? extends V> m) {
-        this(Math.max((int) (m.size() / 0.75f) + 1, 16), 0.75f, false);
-        putAll(m);
     }
 
     /**
@@ -149,9 +173,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         Set<Map.Entry<K, V>> entrySet = cachedEntrySet;
         if(entrySet == null) {
             entrySet = new AbstractSet<>() {
-                public int size() {
-                    return size;
-                }
 
                 public void clear() {
                     CustomLinkedHashMap.this.clear();
@@ -176,14 +197,18 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
                     return false;
                 }
 
+                public Iterator<Map.Entry<K, V>> iterator() {
+                    return new EntryIterator();
+                }
+
                 public boolean remove(final Object o) {
                     if(!(o instanceof Map.Entry<?, ?> e))
                         return false;
                     return CustomLinkedHashMap.this.remove(e.getKey(), e.getValue());
                 }
 
-                public Iterator<Map.Entry<K, V>> iterator() {
-                    return new EntryIterator();
+                public int size() {
+                    return size;
                 }
             };
             cachedEntrySet = entrySet;
@@ -196,11 +221,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * Returns {@code true} if the given object is also a map and the two maps
      * represent the same mappings, matching size and key-value pairings regardless
      * of iteration order.
-     * <p>
-     * If the object being compared is another {@code CustomLinkedHashMap}, this
-     * implementation enforces an additional strict check requiring both maps to
-     * maintain identical key and value {@link Class} type tokens before verifying
-     * the underlying entries.
      *
      * @param o object to be compared for equality with this map
      * @return {@code true} if the specified object is equal to this map
@@ -223,11 +243,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * Returns the value to which the specified key is mapped, or {@code null}
      * if this map contains no mapping for the key.
      * <p>
-     * If the provided key is null or not an instance of the configured key class token,
-     * this implementation gracefully returns {@code null} to guarantee compatibility
-     * with symmetric mixed map collections validations. If an entry is found and this
-     * map was configured with {@code accessOrder = true}, the underlying structural node
-     * is moved to the tail of the doubly-linked list to track recent access.
+     * If an entry is found and this map was configured with {@code accessOrder = true},
+     * the underlying structural node is moved to the tail of the doubly-linked list
+     * to track recent access.
      *
      * @param key the key whose associated value is to be returned (can be null)
      * @return the value to which the specified key is mapped,
@@ -238,16 +256,15 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         if (tab == null || tab.length == 0)
             return null;
         int h = hash(key);
-        for(Entry<K, V> entry = tab[h & (tab.length - 1)]; entry != null; entry = entry.next) {
-            if(entry.hash == h) {
+        for(Entry<K, V> entry = tab[h & (tab.length - 1)]; entry != null; entry = entry.next)
+            if (entry.hash == h) {
                 K k = entry.key;
-                if(k == key || (key != null && key.equals(k))) {
-                    if(accessOrder)
+                if (k == key || (key != null && key.equals(k))) {
+                    if (accessOrder)
                         moveToTail(entry);
                     return entry.value;
                 }
             }
-        }
         return null;
     }
 
@@ -255,23 +272,20 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * Returns the value to which the specified key is mapped, or the provided
      * {@code defaultValue} if this map contains no mapping for the key.
      * <p>
-     * If the provided key is not an instance of the configured key class token,
-     * this implementation gracefully returns the fallback {@code defaultValue}. If a valid
-     * mapping is located and this map is configured for access-ordering, the accessed node is
-     * relocated to the tail of the internal doubly-linked list.
+     * If a valid mapping is located and this map is configured for access-ordering,
+     * the accessed node is relocated to the tail of the internal doubly-linked list.
      *
      * @param key the key whose associated value is to be returned
-     * @param defaultValue the fallback value to return if the key is absent or type-incompatible
+     * @param defaultValue the fallback value to return if the key is absent
      * @return the value to which the specified key is mapped, or {@code defaultValue}
      * if this map contains no mapping for the key
-     * @throws NullPointerException if the specified key is null
      */
     public V getOrDefault(final Object key, final V defaultValue) {
         Entry<K, V>[] tab = table;
         if (tab == null || tab.length == 0)
             return defaultValue;
         int h = hash(key);
-        for (Entry<K, V> e = tab[(tab.length - 1) & h]; e != null; e = e.next) {
+        for (Entry<K, V> e = tab[(tab.length - 1) & h]; e != null; e = e.next)
             if (e.hash == h) {
                 K k = e.key;
                 if (k == key || (key != null && key.equals(k))) {
@@ -280,7 +294,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
                     return e.value;
                 }
             }
-        }
         return defaultValue;
     }
 
@@ -358,11 +371,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for the key, the old value is replaced.
      * <p>
-     * This implementation strictly enforces that the inserted key and value cannot be null,
-     * throwing a {@link NullPointerException} if either parameter is missing.
-     * It performs explicit runtime type validation against both the key and value
-     * class tokens, throwing a {@link ClassCastException} if a type mismatch is detected.
-     * <p>
      * When an entry is updated, it may be moved to the tail of the list based on the
      * configured {@code accessOrder}. When a new entry is added, it is appended to
      * the tail of the internal doubly-linked list. Following an insertion, the
@@ -373,9 +381,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      * @return the previous value associated with {@code key}, or {@code null} if there was no mapping for {@code key}
-     * @throws NullPointerException if the specified key or value is null
-     * @throws ClassCastException if the key or value runtime types are incompatible
-     * with this map's defined tokens
      */
     public V put(final K key, final V value) {
         Entry<K, V>[] tab = table;
@@ -398,18 +403,17 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * These mappings will replace any mappings that this map had for any of the
      * keys currently in the specified map.
      * <p>
-     * This implementation enforces that the source map is non-null. If the source
-     * map contains elements, it iterates sequentially through its entry set,
+     * If the source map contains elements, it iterates sequentially through its entry set,
      * delegating each individual key-value pair to the {@link #put(Object, Object)}
-     * method. This ensures that type safety validation, structural linking, and
-     * eviction checks are consistently executed for every imported entry.
+     * method. This ensures that structural linking and eviction checks are
+     * consistently executed for every imported entry.
      *
      * @param m mappings to be stored in this map
-     * @throws NullPointerException if the specified map is null, or if any key or value in the specified map is null
-     * @throws IllegalArgumentException if any key in the specified map is null
-     * @throws ClassCastException if a key or value type in the specified map is incompatible with this map's defined tokens
+     * @throws NullPointerException if the specified map is null
      */
     public void putAll(final Map<? extends K, ? extends V> m) {
+        if(m == null)
+            throw new NullPointerException();
         int numberElementsToBeAdded = m.size();
         if (numberElementsToBeAdded == 0)
             return;
@@ -427,8 +431,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * Associates the specified value with the specified key if the key is not
      * already associated with a value.
      * <p>
-     * This implementation strictly enforces that both the input key and value are
-     * non-null, throwing a {@link NullPointerException} if either parameter is missing.
      * If a valid mapping already exists for the key, its current value is immediately
      * returned without modifying the map. If no mapping exists, the node is inserted
      * directly into the backing map and tracked at the tail of the iteration order list.
@@ -439,8 +441,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @param value value to be associated with the specified key
      * @return the previous value associated with the specified key, or {@code null}
      * if there was no mapping for the key
-     * @throws ClassCastException if the key or value runtime types are incompatible
-     * with this map's defined tokens
      */
     public V putIfAbsent(final K key, final V value) {
         Entry<K, V>[] tab = table;
@@ -450,11 +450,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         }
         int h = hash(key);
         int index = (tab.length - 1) & h;
-        for (Entry<K, V> e = tab[index]; e != null; e = e.next) {
-            if (e.hash == h && (key == e.key || key.equals(e.key))) {
+        for (Entry<K, V> e = tab[index]; e != null; e = e.next)
+            if (e.hash == h && (key == e.key || key.equals(e.key)))
                 return e.value;
-            }
-        }
         addEntry(h, key, value, index);
         evictEldestIfNeeded();
         return null;
@@ -466,13 +464,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * (insertion or access order).
      * <p>
      * This method traverses the internal doubly-linked list, ensuring that all
-     * value updates occur in the established iteration order. The provided function
-     * is applied to every key-value pair, and the returned value is validated
-     * to ensure it is non-null.
+     * value updates occur in the established iteration order.
      *
      * @param function the function to apply to each entry's key and value
-     * @throws NullPointerException if the specified function is null or if the
-     * function results in a null value
+     * @throws NullPointerException if the specified function is null,
+     * or if the function computes a {@code null} replacement value
      */
     public void replaceAll(final BiFunction<? super K, ? super V, ? extends V> function) {
         requireNonNull(function);
@@ -483,16 +479,11 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
     /**
      * Removes the mapping for the specified key from this map if present.
      * <p>
-     * This implementation enforces that the search key is non-null, throwing a
-     * {@link NullPointerException} if it is missing. It also verifies that the type of the key
-     * matches the configured key class token, throwing a {@link ClassCastException} upon mismatch.
      * If a matching entry is located, it is removed from the backing lookup map and structurally
      * unlinked from the internal doubly-linked list.
      *
      * @param key key whose mapping is to be removed from the map
      * @return the previous value associated with {@code key}, or {@code null} if there was no mapping for {@code key}
-     * @throws NullPointerException if the specified key is null
-     * @throws ClassCastException if the key type is incompatible with this map's defined tokens
      */
     public V remove(final Object key) {
         int h = hash(key);
@@ -519,10 +510,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
     /**
      * Removes the entry for the specified key only if it is currently mapped to
      * the specified value.
-     * <p>
-     * This implementation verifies parameters leniently; if either the key or value is
-     * {@code null}, or if their runtime classes are incompatible with this map's defined tokens,
-     * it immediately returns {@code false} without modifying the map or throwing an exception.
      *
      * @param key key with which the specified value is associated
      * @param value value expected to be associated with the specified key
@@ -575,10 +562,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * Replaces the entry for the specified key only if it is currently mapped to
      * some value.
      * <p>
-     * This implementation performs explicit runtime type validation against both the key and value
-     * class tokens using {@link Class#isInstance(Object)}, throwing a {@link ClassCastException}
-     * if a type mismatch is detected. Because a {@code null} reference is not an instance of any
-     * class, passing a {@code null} key or value will also result in a {@link ClassCastException}.
      * If a matching mapping is located in the map, its value is updated to the new specified value,
      * and the previous value is returned. If the key is not present, the map remains unmodified
      * and {@code null} is returned.
@@ -587,8 +570,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @param value value to be associated with the specified key
      * @return the previous value associated with the specified key, or {@code null}
      * if there was no mapping for the key
-     * @throws ClassCastException if the key or value runtime types are incompatible with this map's defined tokens,
-     * or if either parameter is null with this map's defined tokens, or if either parameter is null
      */
     public V replace(final K key, final V value) {
         Entry<K, V>[] tab = table;
@@ -604,12 +585,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * Replaces the entry for the specified key only if it is currently mapped to
      * the specified old value.
      * <p>
-     * This implementation strictly enforces that the input key, expected old value,
-     * and new value are all non-null, throwing a {@link NullPointerException} if any
-     * parameter is missing. It also executes explicit runtime type verification for
-     * all three arguments against the map's established key and value class tokens,
-     * throwing a {@link ClassCastException} upon a mismatch.
-     * <p>
      * If the key exists in the map, its currently associated value is compared to
      * {@code oldValue} using {@link Object#equals(Object)}. The value is updated to
      * {@code newValue} and {@code true} is returned if and only if the values match.
@@ -620,8 +595,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
      * @param newValue value to be associated with the specified key
      * @return {@code true} if the value was replaced, {@code false} otherwise
      * @throws NullPointerException if the specified key, oldValue, or newValue is null
-     * @throws ClassCastException if the key, oldValue, or newValue runtime types
-     * are incompatible with this map's defined tokens
      */
     public boolean replace(final K key, final V oldValue, final V newValue) {
         requireNonNull(key);
@@ -646,8 +619,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
     /**
      * Returns the number of key-value mappings in this map.
      * <p>
-     * This implementation delegates directly to the underlying backing map
-     * to retrieve the structural entry count in O(1) constant time.
+     * This implementation returns the structural entry count in O(1) constant time.
      *
      * @return the number of key-value mappings in this map
      */
@@ -688,10 +660,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         Collection<V> valuesSet = cachedValues;
         if(valuesSet == null) {
             valuesSet = new AbstractCollection<>() {
-                public int size() {
-                    return size;
-                }
-
                 public void clear() {
                     CustomLinkedHashMap.this.clear();
                 }
@@ -702,6 +670,10 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
 
                 public Iterator<V> iterator() {
                     return new ValueIterator();
+                }
+
+                public int size() {
+                    return size;
                 }
             };
             cachedValues = valuesSet;
@@ -884,7 +856,6 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
             threshold = Integer.MAX_VALUE;
             return;
         }
-
         Entry<K, V>[] newTable = (Entry<K, V>[]) new Entry[newCapacity];
         for (int i = 0; i < oldCapacity; i++) {
             Entry<K, V> e = oldTable[i];

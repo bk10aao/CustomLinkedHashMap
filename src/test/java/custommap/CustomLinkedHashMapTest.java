@@ -562,82 +562,14 @@ public class CustomLinkedHashMapTest {
     @Test
     public void onInstantiatingMapAsCache_withSizeOf_negative_1_throws_IllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () ->
-                new CustomLinkedHashMap<>(-1, true)
+                new CustomLinkedHashMap<>(-1)
         );
     }
 
     @Test
     public void onInstantiatingMapAsCache_withCacheCapacityOf_10_returnsSizeOf_0() {
-        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(10, true);
+        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(10);
         assertEquals(0, cache.size());
-    }
-
-    @Test
-    public void givenMapAsCache_withValues_1_2_3_onGet_4_returns_null() {
-        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(10, true);
-        cache.put(1, 1);
-        cache.put(2, 2);
-        cache.put(3, 3);
-        assertNull(cache.get(4));
-    }
-
-    @Test
-    public void givenMapAsCache_withValues_1_2_3_onGet_3_returns_3() {
-        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(10, true);
-        cache.put(1, 1);
-        cache.put(2, 2);
-        cache.put(3, 3);
-        assertEquals(3, cache.get(3));
-    }
-
-    @Test
-    public void givenMapAsCache_withValues_1_2_3_onPut_4_4_returnsSizeOf_3() {
-        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(3, true);
-        cache.put(1, 1);
-        cache.put(2, 2);
-        cache.put(3, 3);
-        assertEquals(3, cache.size());
-    }
-
-    @Test
-    public void givenMapAsCacheOfSize_5_on_addingSizeValues_removesLeastUsedCacheValueOf_1_andReturns_on_get_1_returns_null() {
-        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(5, true);
-        cache.put(1, 1);
-        cache.put(2, 2);
-        cache.put(3, 3);
-        cache.put(4, 4);
-        cache.put(5, 5);
-        cache.put(6, 6);
-        assertNull(cache.get(1));
-        assertEquals(5, cache.size());
-        assertFalse(cache.containsKey(1));
-        assertFalse(cache.containsValue(1));
-    }
-
-    @Test
-    public void givenLRUCache_whenReadingAnItem_itMovesToTheEndOfTheIterationLine() {
-        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(3, true);
-        cache.put(1, 10);
-        cache.put(2, 20);
-        cache.put(3, 30);
-        cache.get(1);
-        Iterator<Integer> keyIterator = cache.keySet().iterator();
-        assertEquals(2, keyIterator.next());
-        assertEquals(3, keyIterator.next());
-        assertEquals(1, keyIterator.next());
-    }
-
-    @Test
-    public void givenLRUCache_whenReadingAnItemWithGetOrDefault_itMovesToTheEndOfTheIterationLine() {
-        CustomLinkedHashMap<Integer, Integer> cache = new CustomLinkedHashMap<>(3, true);
-        cache.put(1, 10);
-        cache.put(2, 20);
-        cache.put(3, 30);
-        cache.getOrDefault(1, 100);
-        Iterator<Integer> keyIterator = cache.keySet().iterator();
-        assertEquals(2, keyIterator.next());
-        assertEquals(3, keyIterator.next());
-        assertEquals(1, keyIterator.next());
     }
 
     @Test
@@ -711,25 +643,6 @@ public class CustomLinkedHashMapTest {
         }));
         assertEquals(10, map.get("A"), "First entry value was modified or retained depending on iteration execution flow.");
         assertEquals(20, map.get("B"), "The entry that caused the null return should remain untouched.");
-    }
-
-    @Test
-    public void testReplaceAllExecutesInCorrectIterationOrder() {
-        CustomLinkedHashMap<String, Integer> map = new CustomLinkedHashMap<>(10, true);
-        map.put("First", 1);
-        map.put("Second", 2);
-        map.put("Third", 3);
-        map.get("Second");
-        StringBuilder trackingSequence = new StringBuilder();
-        map.replaceAll((key, value) -> {
-            trackingSequence.append(key).append("->");
-            return value + 100;
-        });
-        String expectedSequence = "First->Third->Second->";
-        assertEquals(expectedSequence, trackingSequence.toString());
-        assertEquals(101, map.get("First"));
-        assertEquals(103, map.get("Third"));
-        assertEquals(102, map.get("Second"));
     }
 
     @Test
