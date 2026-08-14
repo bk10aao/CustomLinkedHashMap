@@ -186,7 +186,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
                     Entry<K, V>[] tab = table;
                     if (tab == null || tab.length == 0)
                         return false;
-                    for (Entry<K, V> candidate = tab[(tab.length - 1) & h]; candidate != null; candidate = candidate.next) {
+                    int index = (tab.length - 1) & h;
+                    for (Entry<K, V> candidate = tab[index]; candidate != null; candidate = candidate.next) {
                         if (candidate.hash == h) {
                             K k = candidate.key;
                             if (k == key || (key != null && key.equals(k))) {
@@ -574,7 +575,7 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
     public V replace(final K key, final V value) {
         Entry<K, V>[] tab = table;
         int h = hash(key);
-        int index = h & (tab.length - 1);
+        int index = (tab.length - 1) & h;
         for (Entry<K, V> e = tab[index]; e != null; e = e.next)
             if (e.hash == h && (key == e.key || key.equals(e.key)))
                 return updateExistingEntry(e, value);
@@ -787,8 +788,8 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         }
     }
 
-    private void addEntry(final int h, final Object key, final Object value, final int index) {
-        Entry<K, V> newEntry = new Entry<>(h, (K) key, (V) value, table[index]);
+    private void addEntry(final int h, final K key, final V value, final int index) {
+        Entry<K, V> newEntry = new Entry<>(h, key, value, table[index]);
         table[index] = newEntry;
         linkTail(newEntry);
         size++;
@@ -888,9 +889,9 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
         entry.after = null;
     }
 
-    private V updateExistingEntry(final Entry<K, V> entry, final Object value) {
+    private V updateExistingEntry(final Entry<K, V> entry, final V value) {
         V oldValue = entry.value;
-        entry.value = (V) value;
+        entry.value = value;
         if (accessOrder)
             moveToTail(entry);
         return oldValue;
