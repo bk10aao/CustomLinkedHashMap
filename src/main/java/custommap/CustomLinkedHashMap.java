@@ -187,14 +187,12 @@ public class CustomLinkedHashMap<K, V> implements Map<K, V> {
                         return false;
                     int h = hash(key);
                     int index = (tab.length - 1) & h;
-                    for (Entry<K, V> candidate = tab[index]; candidate != null; candidate = candidate.next) {
+                    for (Entry<K, V> candidate = tab[index]; candidate != null; candidate = candidate.next)
                         if (candidate.hash == h) {
                             K k = candidate.key;
-                            if (k == key || (key != null && key.equals(k))) {
+                            if (k == key || (key != null && key.equals(k)))
                                 return Objects.equals(candidate.value, e.getValue());
-                            }
                         }
-                    }
                     return false;
                 }
 
